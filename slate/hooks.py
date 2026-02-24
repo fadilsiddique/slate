@@ -5,6 +5,12 @@ app_description = "Sales Flow PWA for ERPNext"
 app_email = "info@upscapetech.com"
 app_license = "mit"
 
+# Route all /slate/* sub-paths to the SPA entry page (www/slate.html).
+# The root /slate is handled directly by that www page.
+website_route_rules = [
+    {"from_route": "/slate/<path:app_path>", "to_route": "slate"},
+]
+
 # Apps
 # ------------------
 
