@@ -1,9 +1,9 @@
 [project]
-name = "claimsuite"
+name = "slate"
 authors = [
     { name = "Upscape", email = "info@upscapetech.com"}
 ]
-description = "Simple claim requsts"
+description = "PWA for sales"
 requires-python = ">=3.10"
 readme = "README.md"
 dynamic = ["version"]
