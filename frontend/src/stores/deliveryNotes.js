@@ -48,8 +48,8 @@ export const useDeliveryNoteStore = defineStore('deliveryNotes', () => {
    *
    * @param {{ search?: string, status?: string, start?: number }} opts
    */
-  async function fetchDeliveryNotes({ search = '', status = '', start = 0 } = {}) {
-    const key = `${search.trim().toLowerCase()}|${status}`
+  async function fetchDeliveryNotes({ search = '', status = '', sortBy = 'creation', dateFrom = '', dateTo = '', start = 0 } = {}) {
+    const key = `${search.trim().toLowerCase()}|${status}|${sortBy}|${dateFrom}|${dateTo}`
 
     if (start === 0) {
       const hit = _listCache.get(key)
@@ -58,6 +58,8 @@ export const useDeliveryNoteStore = defineStore('deliveryNotes', () => {
 
     const filters = []
     if (search.trim()) filters.push(['customer_name', 'like', `%${search.trim()}%`])
+    if (dateFrom)      filters.push(['posting_date', '>=', dateFrom])
+    if (dateTo)        filters.push(['posting_date', '<=', dateTo])
 
     // Map status tab → docstatus/status field filters
     if (status === 'Draft')         filters.push(['docstatus', '=', 0])
@@ -70,7 +72,7 @@ export const useDeliveryNoteStore = defineStore('deliveryNotes', () => {
       filters,
       limit: PAGE_SIZE,
       start,
-      orderBy: 'creation desc',
+      orderBy: sortBy === 'modified' ? 'modified desc' : 'creation desc',
     })
 
     const data    = result?.data ?? result ?? []

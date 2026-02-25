@@ -14,20 +14,24 @@
             {{ totalLoaded }} note{{ totalLoaded !== 1 ? 's' : '' }}
           </p>
         </div>
+        <SortToggle v-model="sortBy" @update:model-value="reload()" />
       </div>
 
       <!-- Search bar -->
       <div class="px-4 pb-2">
         <SearchBar
           v-model="search"
-          placeholder="Search by customer name…"
+          placeholder="Filter by customer name…"
           @input="debouncedReload"
           @clear="clearSearch"
         />
       </div>
 
-      <!-- Status tabs -->
-      <StatusTabStrip :tabs="STATUS_TABS" v-model="activeStatus" :active-class="activeTabClass" @update:model-value="reload()" />
+      <!-- Filter row: Status + Date -->
+      <div class="px-4 pb-3 flex items-center gap-2">
+        <StatusSelect v-model="activeStatus" :options="STATUS_TABS" @update:model-value="reload()" />
+        <DateRangePicker v-model:from="dateFrom" v-model:to="dateTo" @apply="reload()" />
+      </div>
     </header>
 
     <!-- ── Content area ───────────────────────────────────────────────────── -->
@@ -47,8 +51,8 @@
       <EmptyState
         v-else-if="!loading && notes.length === 0"
         title="No delivery notes found"
-        subtitle="Try adjusting your search or status filter"
-        :show-clear="!!(search || activeStatus)"
+        subtitle="Try adjusting your search or filters"
+        :show-clear="!!(search || activeStatus || dateFrom || dateTo)"
         @clear="clearFilters"
       >
         <template #icon><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/></template>
@@ -62,18 +66,13 @@
           class="w-full bg-white rounded-2xl px-4 py-3 border border-muted/20 shadow-sm flex flex-col gap-1 text-left active:scale-[.98] transition-transform"
           @click="router.push({ name: 'DeliveryNoteDetail', params: { name: d.name } })"
         >
-          <!-- Top row: name + status badge -->
           <div class="flex items-center justify-between gap-2">
             <span class="text-[11px] font-mono text-muted/80 truncate">{{ d.name }}</span>
             <StatusBadge :label="statusLabel(d)" :color-class="statusBadgeClass(d)" />
           </div>
-
-          <!-- Customer name -->
           <p class="text-sm font-semibold text-gray-900 truncate leading-tight">
             {{ d.customer_name || d.customer || '—' }}
           </p>
-
-          <!-- Date + billing % + amount -->
           <div class="flex items-center justify-between gap-2">
             <span class="text-[11px] text-muted">
               {{ fmtDate(d.posting_date) }}
@@ -81,9 +80,7 @@
                 · Billed {{ d.per_billed }}%
               </span>
             </span>
-            <span class="text-sm font-bold text-gray-800">
-              {{ d.currency || 'AED' }} {{ fmt(d.grand_total) }}
-            </span>
+            <span class="text-sm font-bold text-gray-800">{{ d.currency || 'AED' }} {{ fmt(d.grand_total) }}</span>
           </div>
         </button>
       </div>
@@ -122,20 +119,26 @@ import EmptyState from '@/components/shared/EmptyState.vue'
 import StatusBadge from '@/components/shared/StatusBadge.vue'
 import PullToRefreshIndicator from '@/components/shared/PullToRefreshIndicator.vue'
 import FloatingActionButton from '@/components/shared/FloatingActionButton.vue'
-import StatusTabStrip from '@/components/shared/StatusTabStrip.vue'
+import SortToggle from '@/components/shared/SortToggle.vue'
+import StatusSelect from '@/components/shared/StatusSelect.vue'
+import DateRangePicker from '@/components/shared/DateRangePicker.vue'
 
 const router   = useRouter()
 const dnStore  = useDeliveryNoteStore()
-const scrollEl = inject('scrollEl')  // provided by AppShell
+const scrollEl = inject('scrollEl')
 const { fmt, fmtDate } = useFormatters()
 
-// ── Status tabs ───────────────────────────────────────────────────────────────
+// ── Constants ─────────────────────────────────────────────────────────────────
 const STATUS_TABS = ['All', 'Draft', 'To Bill', 'Completed', 'Cancelled']
 
-// ── Display state ─────────────────────────────────────────────────────────────
+// ── Filter state ──────────────────────────────────────────────────────────────
 const search       = ref('')
 const activeStatus = ref('')
+const sortBy       = ref('creation')
+const dateFrom     = ref('')
+const dateTo       = ref('')
 
+// ── List state ────────────────────────────────────────────────────────────────
 const notes       = ref([])
 const loading     = ref(false)
 const error       = ref(null)
@@ -162,9 +165,12 @@ async function reload(force = false) {
 
   try {
     const res = await dnStore.fetchDeliveryNotes({
-      search: search.value,
-      status: activeStatus.value,
-      start:  0,
+      search:   search.value,
+      status:   activeStatus.value,
+      sortBy:   sortBy.value,
+      dateFrom: dateFrom.value,
+      dateTo:   dateTo.value,
+      start:    0,
     })
     notes.value       = res.data ?? []
     hasMore.value     = res.hasMore
@@ -183,9 +189,12 @@ async function loadMore() {
   loading.value = true
   try {
     const res = await dnStore.fetchDeliveryNotes({
-      search: search.value,
-      status: activeStatus.value,
-      start:  nextStart.value,
+      search:   search.value,
+      status:   activeStatus.value,
+      sortBy:   sortBy.value,
+      dateFrom: dateFrom.value,
+      dateTo:   dateTo.value,
+      start:    nextStart.value,
     })
     notes.value       = [...notes.value, ...(res.data ?? [])]
     hasMore.value     = res.hasMore
@@ -205,9 +214,8 @@ function debouncedReload() {
   searchTimer = setTimeout(() => reload(), 320)
 }
 
-function setStatus(s)   { activeStatus.value = s; reload() }
 function clearSearch()  { search.value = ''; reload() }
-function clearFilters() { search.value = ''; activeStatus.value = ''; reload() }
+function clearFilters() { search.value = ''; activeStatus.value = ''; dateFrom.value = ''; dateTo.value = ''; reload() }
 
 function statusLabel(d) {
   if (d.docstatus === 2) return 'Cancelled'
@@ -225,25 +233,8 @@ function statusBadgeClass(d) {
   return map[d.status] ?? 'bg-gray-100 text-gray-600'
 }
 
-function activeTabClass(tab) {
-  const map = {
-    All:       'bg-primary text-white border-primary',
-    Draft:     'bg-gray-600 text-white border-gray-600',
-    'To Bill': 'bg-amber-500 text-white border-amber-500',
-    Completed: 'bg-green-600 text-white border-green-600',
-    Cancelled: 'bg-gray-400 text-white border-gray-400',
-  }
-  return map[tab] ?? 'bg-primary text-white border-primary'
-}
-
-
 // ── Boot ──────────────────────────────────────────────────────────────────────
 onMounted(async () => {
   await reload()
 })
 </script>
-
-<style scoped>
-.scrollbar-none { scrollbar-width: none; }
-.scrollbar-none::-webkit-scrollbar { display: none; }
-</style>
