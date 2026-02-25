@@ -100,6 +100,27 @@
           />
         </div>
 
+        <!-- ── Update Stock ── -->
+        <div>
+          <label class="flex items-center gap-3 cursor-pointer select-none">
+            <button
+              type="button"
+              class="relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none shrink-0"
+              :class="updateStock ? 'bg-primary' : 'bg-muted/30'"
+              @click="updateStock = !updateStock"
+            >
+              <span
+                class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"
+                :class="updateStock ? 'translate-x-5' : 'translate-x-0'"
+              />
+            </button>
+            <div>
+              <p class="text-sm font-semibold text-gray-700">Update Stock</p>
+              <p class="text-[11px] text-muted">Deduct stock on invoice (no Delivery Note needed)</p>
+            </div>
+          </label>
+        </div>
+
         <!-- ── Payment Terms Template ── -->
         <div v-if="paymentTermsOptions.length">
           <label class="block text-xs font-semibold text-gray-600 mb-1.5">
@@ -270,13 +291,8 @@
             </svg>
           </button>
           <div v-if="showNotes" class="px-4 pb-4 pt-2 bg-white border-t border-muted/20">
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Terms &amp; Conditions</label>
-            <textarea
-              v-model="terms"
-              rows="4"
-              placeholder="Terms and conditions…"
-              class="w-full px-4 py-3 text-sm bg-surface rounded-xl border border-muted/40 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition resize-none"
-            />
+            <label class="block text-xs font-semibold text-gray-600 mb-2">Terms &amp; Conditions</label>
+            <TermsSelect v-model="terms" />
           </div>
         </div>
 
@@ -311,6 +327,7 @@ import { useDefaultsStore } from '@/stores/defaults'
 import { api } from '@/composables/useApi'
 import { useFormatters } from '@/composables/useFormatters'
 import ActionFooter from '@/components/shared/ActionFooter.vue'
+import TermsSelect from '@/components/shared/TermsSelect.vue'
 import AutocompleteInput from '@/components/shared/AutocompleteInput.vue'
 
 const route  = useRoute()
@@ -357,6 +374,7 @@ const customerResults  = ref([])
 
 const postingDate         = ref(today())
 const dueDate             = ref('')
+const updateStock         = ref(false)
 const paymentTerms        = ref('')
 const paymentTermsOptions = ref([])
 
@@ -525,6 +543,7 @@ function buildDoc() {
     customer_name: customerLabel.value,
     posting_date:  postingDate.value,
     ...(dueDate.value      ? { due_date:                dueDate.value }      : {}),
+    update_stock: updateStock.value ? 1 : 0,
     ...(paymentTerms.value ? { payment_terms_template:  paymentTerms.value } : {}),
     ...(isReturnInvoice.value ? { is_return: 1, return_against: returnAgainst.value } : {}),
     items: items.value.map((r) => ({
@@ -596,6 +615,7 @@ onMounted(async () => {
     customerQuery.value    = prefill.customer_name     ?? ''
     postingDate.value      = today()
     dueDate.value          = prefill.due_date          ?? ''
+    updateStock.value      = false
     paymentTerms.value     = prefill.payment_terms_template ?? ''
     taxTemplate.value      = prefill.taxes_and_charges ?? ''
     taxRows.value          = prefill.taxes             ?? []
@@ -637,6 +657,7 @@ onMounted(async () => {
       customerQuery.value = doc.customer_name     ?? ''
       postingDate.value   = doc.posting_date      ?? today()
       dueDate.value       = doc.due_date          ?? ''
+      updateStock.value   = !!doc.update_stock
       paymentTerms.value  = doc.payment_terms_template ?? ''
       taxTemplate.value   = doc.taxes_and_charges ?? ''
       taxRows.value       = doc.taxes             ?? []

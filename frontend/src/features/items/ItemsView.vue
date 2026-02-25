@@ -127,20 +127,6 @@
           class="w-full bg-white rounded-2xl px-4 py-3 border border-muted/20 shadow-sm flex items-center gap-3 text-left active:scale-[.98] transition-transform"
           @click="openItem(item)"
         >
-          <!-- Thumbnail -->
-          <div class="w-12 h-12 rounded-xl bg-surface border border-muted/20 flex items-center justify-center shrink-0 overflow-hidden">
-            <img
-              v-if="item.image"
-              :src="item.image"
-              :alt="item.item_name"
-              class="w-full h-full object-cover"
-              loading="lazy"
-            />
-            <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-muted/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-            </svg>
-          </div>
-
           <div class="flex-1 min-w-0">
             <p class="text-sm font-semibold text-gray-900 truncate leading-tight">{{ item.item_name }}</p>
             <p class="text-[11px] text-muted mt-0.5 truncate">{{ item.item_code }}</p>
@@ -152,7 +138,7 @@
 
           <div class="text-right shrink-0 ml-1">
             <p class="text-sm font-bold text-gray-900">
-              {{ item.standard_rate ? fmt(item.standard_rate) : '—' }}
+              {{ displayPrice(item) }}
             </p>
             <p class="text-[10px] text-muted mt-0.5">/ {{ item.stock_uom }}</p>
           </div>
@@ -171,20 +157,6 @@
           class="bg-white rounded-2xl border border-muted/20 shadow-sm overflow-hidden text-left active:scale-[.97] transition-transform flex flex-col"
           @click="openItem(item)"
         >
-          <!-- Image -->
-          <div class="aspect-square bg-surface flex items-center justify-center overflow-hidden">
-            <img
-              v-if="item.image"
-              :src="item.image"
-              :alt="item.item_name"
-              class="w-full h-full object-cover"
-              loading="lazy"
-            />
-            <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-gray-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-            </svg>
-          </div>
-
           <!-- Info -->
           <div class="p-3 flex flex-col gap-1 flex-1">
             <p class="text-xs font-semibold text-gray-900 leading-snug line-clamp-2">{{ item.item_name }}</p>
@@ -192,7 +164,7 @@
             <div class="mt-auto pt-2 flex items-end justify-between">
               <div>
                 <p class="text-sm font-bold text-primary">
-                  {{ item.standard_rate ? fmt(item.standard_rate) : '—' }}
+                  {{ displayPrice(item) }}
                 </p>
                 <p class="text-[9px] text-muted">/ {{ item.stock_uom }}</p>
               </div>
@@ -227,18 +199,46 @@
 import { ref, inject, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useItemStore } from '@/stores/items'
+import { useDefaultsStore } from '@/stores/defaults'
 import { usePullToRefresh } from '@/composables/usePullToRefresh'
 import { useFormatters } from '@/composables/useFormatters'
 import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
+import { api } from '@/composables/useApi'
 import SearchBar from '@/components/shared/SearchBar.vue'
 import ErrorState from '@/components/shared/ErrorState.vue'
 import EmptyState from '@/components/shared/EmptyState.vue'
 import PullToRefreshIndicator from '@/components/shared/PullToRefreshIndicator.vue'
 
-const router    = useRouter()
-const itemStore = useItemStore()
-const scrollEl  = inject('scrollEl') // provided by AppShell
+const router       = useRouter()
+const itemStore    = useItemStore()
+const defaultsStore = useDefaultsStore()
+const scrollEl     = inject('scrollEl') // provided by AppShell
 const { fmt } = useFormatters()
+
+// ── Price map (Item Price per item_code) ──────────────────────────────────────
+const priceMap = ref({})   // item_code → price_list_rate
+
+async function fetchPrices(list) {
+  const codes = list.map(i => i.item_code).filter(c => !(c in priceMap.value))
+  if (!codes.length || !defaultsStore.sellingPriceList) return
+  try {
+    const res = await api.getList('Item Price', {
+      fields:  ['item_code', 'price_list_rate'],
+      filters: [
+        ['price_list', '=',  defaultsStore.sellingPriceList],
+        ['item_code',  'in', codes],
+        ['selling',    '=',  1],
+      ],
+      limit: codes.length + 10,
+    })
+    ;(res?.data ?? res ?? []).forEach(p => { priceMap.value[p.item_code] = p.price_list_rate })
+  } catch { /* silently fall back to standard_rate */ }
+}
+
+function displayPrice(item) {
+  const rate = priceMap.value[item.item_code] ?? item.standard_rate
+  return rate ? fmt(rate) : '—'
+}
 
 // ── Display state ─────────────────────────────────────────────────────────────
 const viewMode    = ref('list')
@@ -281,6 +281,7 @@ async function reload(force = false) {
     hasMore.value      = res.hasMore
     nextStart.value    = items.value.length
     totalLoaded.value  = items.value.length
+    fetchPrices(items.value)
   } catch (e) {
     console.error('[Items] reload failed', e)
     error.value = e?.message ?? 'Failed to load items'
@@ -299,10 +300,12 @@ async function loadMore() {
       brand:  activeBrand.value,
       start:  nextStart.value,
     })
-    items.value      = [...items.value, ...(res.data ?? [])]
+    const newItems = res.data ?? []
+    items.value      = [...items.value, ...newItems]
     hasMore.value     = res.hasMore
     nextStart.value   = items.value.length
     totalLoaded.value = items.value.length
+    fetchPrices(newItems)
   } catch (e) {
     console.error('[Items] loadMore failed', e)
   } finally {
@@ -325,6 +328,7 @@ function openItem(item) { router.push({ name: 'ItemDetail', params: { itemCode: 
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 onMounted(async () => {
+  await defaultsStore.fetchDefaults()
   itemStore.fetchFilterOptions().catch(() => {})
   await reload()
 })
