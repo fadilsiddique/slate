@@ -121,6 +121,29 @@ const routes = [
         meta: { transition: 'slide' },
       },
       {
+        path: 'invoices',
+        name: 'Invoices',
+        component: () => import('@/features/invoices/InvoicesView.vue'),
+      },
+      {
+        path: 'invoices/new',
+        name: 'InvoiceNew',
+        component: () => import('@/features/invoices/InvoiceFormView.vue'),
+        meta: { transition: 'slide' },
+      },
+      {
+        path: 'invoices/:name',
+        name: 'InvoiceDetail',
+        component: () => import('@/features/invoices/InvoiceDetailView.vue'),
+        meta: { transition: 'slide' },
+      },
+      {
+        path: 'invoices/:name/edit',
+        name: 'InvoiceEdit',
+        component: () => import('@/features/invoices/InvoiceFormView.vue'),
+        meta: { transition: 'slide' },
+      },
+      {
         path: 'profile',
         name: 'Profile',
         component: () => import('@/features/profile/ProfileView.vue'),

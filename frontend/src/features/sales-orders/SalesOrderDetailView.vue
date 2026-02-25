@@ -27,34 +27,14 @@
         </button>
         <h1 class="text-lg font-bold text-gray-900">Sales Order</h1>
       </header>
-      <div class="flex flex-col items-center justify-center py-20 text-center px-6">
-        <div class="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-        </div>
-        <p class="text-gray-700 font-semibold">Couldn't load order</p>
-        <p class="text-red-400 text-xs mt-1 break-all">{{ error }}</p>
-        <button
-          class="mt-4 px-5 py-2 bg-primary text-white rounded-xl text-sm font-semibold"
-          @click="loadOrder"
-        >Try again</button>
-      </div>
+      <ErrorState title="Couldn't load order" :message="error" @retry="loadOrder" />
     </template>
 
     <!-- ── Loaded ──────────────────────────────────────────────────────────── -->
     <template v-else-if="so">
 
       <!-- Absolute top nav -->
-      <div class="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-4 bg-white/80 backdrop-blur-sm border-b border-muted/20">
-        <button
-          class="w-8 h-8 rounded-xl border border-muted/30 flex items-center justify-center shrink-0"
-          @click="router.back()"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-        </button>
+      <DetailTopNav @back="router.back()">
         <div class="flex items-center gap-2">
           <ShareButton
             doctype="Sales Order"
@@ -75,7 +55,7 @@
             </svg>
           </button>
         </div>
-      </div>
+      </DetailTopNav>
 
       <!-- Content -->
       <div class="pt-16 px-4 pb-36 space-y-4">
@@ -84,10 +64,7 @@
         <div class="bg-white rounded-2xl px-5 py-4 border border-muted/20 shadow-sm">
           <div class="flex items-start justify-between gap-2 mb-2">
             <span class="text-[11px] font-mono text-muted/80">{{ so.name }}</span>
-            <span
-              class="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold"
-              :class="statusBadgeClass(so)"
-            >{{ statusLabel(so) }}</span>
+            <StatusBadge :label="statusLabel(so)" :color-class="statusBadgeClass(so)" />
           </div>
           <h1 class="text-xl font-bold text-gray-900 leading-tight mb-1">
             {{ so.customer_name || so.customer || '—' }}
@@ -107,13 +84,7 @@
         </div>
 
         <!-- Progress card (only for submitted orders) -->
-        <div
-          v-if="so.docstatus === 1"
-          class="bg-white rounded-2xl border border-muted/20 shadow-sm overflow-hidden"
-        >
-          <div class="px-4 py-3 border-b border-muted/20">
-            <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Progress</p>
-          </div>
+        <SectionCard v-if="so.docstatus === 1" title="Progress">
           <div class="px-4 py-3 space-y-3">
             <!-- Delivery -->
             <div>
@@ -148,13 +119,10 @@
               </div>
             </div>
           </div>
-        </div>
+        </SectionCard>
 
         <!-- Items card -->
-        <div class="bg-white rounded-2xl border border-muted/20 shadow-sm overflow-hidden">
-          <div class="px-4 py-3 border-b border-muted/20">
-            <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Items</p>
-          </div>
+        <SectionCard title="Items">
           <div class="divide-y divide-muted/10">
             <div
               v-for="item in so.items ?? []"
@@ -174,13 +142,10 @@
               No items
             </div>
           </div>
-        </div>
+        </SectionCard>
 
         <!-- Summary card -->
-        <div class="bg-white rounded-2xl border border-muted/20 shadow-sm overflow-hidden">
-          <div class="px-4 py-3 border-b border-muted/20">
-            <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Summary</p>
-          </div>
+        <SectionCard title="Summary">
           <div class="px-4 py-3 space-y-2">
             <div class="flex justify-between text-sm text-gray-600">
               <span>Net Total</span>
@@ -201,16 +166,10 @@
               <span>{{ currency }} {{ fmt(so.grand_total) }}</span>
             </div>
           </div>
-        </div>
+        </SectionCard>
 
         <!-- PO Info card -->
-        <div
-          v-if="so.po_no"
-          class="bg-white rounded-2xl border border-muted/20 shadow-sm overflow-hidden"
-        >
-          <div class="px-4 py-3 border-b border-muted/20">
-            <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Purchase Order</p>
-          </div>
+        <SectionCard v-if="so.po_no" title="Purchase Order">
           <div class="px-4 py-3 space-y-1">
             <div class="flex justify-between text-sm">
               <span class="text-gray-500">PO Number</span>
@@ -221,29 +180,19 @@
               <span class="text-gray-700">{{ fmtDate(so.po_date) }}</span>
             </div>
           </div>
-        </div>
+        </SectionCard>
 
         <!-- Terms card -->
-        <div
-          v-if="so.terms"
-          class="bg-white rounded-2xl border border-muted/20 shadow-sm overflow-hidden"
-        >
-          <div class="px-4 py-3 border-b border-muted/20">
-            <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Terms &amp; Conditions</p>
-          </div>
+        <SectionCard v-if="so.terms" title="Terms &amp; Conditions">
           <div class="px-4 py-3">
             <p class="text-sm text-gray-700 whitespace-pre-line">{{ so.terms }}</p>
           </div>
-        </div>
+        </SectionCard>
 
       </div>
 
       <!-- ── Action footer ─────────────────────────────────────────────────── -->
-      <div
-        v-if="showActions"
-        class="fixed bottom-16 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-t border-muted/20 px-4 py-3 shadow-lg"
-        style="max-width: 480px; margin-inline: auto;"
-      >
+      <ActionFooter v-if="showActions">
         <!-- Draft: Edit + Submit -->
         <div v-if="so.docstatus === 0" class="flex gap-3">
           <button
@@ -297,7 +246,7 @@
           <p class="text-sm text-green-700 font-semibold">Order Completed</p>
           <p class="text-xs text-muted mt-0.5">Fully delivered and billed</p>
         </div>
-      </div>
+      </ActionFooter>
 
     </template>
   </div>
@@ -308,14 +257,23 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useOrderStore } from '@/stores/orders'
 import { useDeliveryNoteStore } from '@/stores/deliveryNotes'
+import { useInvoiceStore } from '@/stores/invoices'
 import ShareButton from '@/components/shared/ShareButton.vue'
+import ErrorState from '@/components/shared/ErrorState.vue'
+import SectionCard from '@/components/shared/SectionCard.vue'
+import ActionFooter from '@/components/shared/ActionFooter.vue'
+import StatusBadge from '@/components/shared/StatusBadge.vue'
+import DetailTopNav from '@/components/shared/DetailTopNav.vue'
+import { useFormatters } from '@/composables/useFormatters'
 
 const route      = useRoute()
 const router     = useRouter()
-const orderStore = useOrderStore()
-const dnStore    = useDeliveryNoteStore()
+const orderStore   = useOrderStore()
+const dnStore      = useDeliveryNoteStore()
+const invoiceStore = useInvoiceStore()
 
 const orderName = route.params.name
+const { fmt, fmtDate } = useFormatters()
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const so          = ref(null)
@@ -384,12 +342,11 @@ async function handleCreateSI() {
   actionTarget.value = 'si'
   actionError.value  = null
   try {
-    await orderStore.createSalesInvoice(orderName)
-    // Reload to show updated billing status (no invoices route yet)
-    so.value = await orderStore.fetchOrderDetail(orderName)
+    const siDoc = await orderStore.createSalesInvoice(orderName)
+    invoiceStore.setPrefill(siDoc)
+    router.push({ name: 'InvoiceNew' })
   } catch (e) {
-    actionError.value = e?.message ?? 'Failed to create Sales Invoice'
-  } finally {
+    actionError.value  = e?.message ?? 'Failed to create Sales Invoice'
     actioning.value    = false
     actionTarget.value = ''
   }
@@ -412,12 +369,6 @@ function statusBadgeClass(o) {
     Completed:             'bg-green-50 text-green-700',
   }
   return map[o.status] ?? 'bg-gray-100 text-gray-600'
-}
-
-const _fmt = new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-function fmt(n)     { return _fmt.format(n ?? 0) }
-function fmtDate(d) {
-  return d ? new Date(d).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
 }
 
 // ── Mount ─────────────────────────────────────────────────────────────────────

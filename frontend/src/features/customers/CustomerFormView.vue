@@ -225,10 +225,7 @@
       </div>
 
       <!-- ── Sticky save button ──────────────────────────────────────────── -->
-      <div
-        class="fixed bottom-16 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-t border-muted/20 px-4 py-3 shadow-lg"
-        style="max-width: 480px; margin-inline: auto;"
-      >
+      <ActionFooter>
         <button
           type="button"
           class="w-full bg-primary text-white rounded-xl py-3 font-semibold text-sm flex items-center justify-center gap-2 active:scale-[.97] transition-transform"
@@ -246,7 +243,7 @@
           </svg>
           {{ saving ? 'Saving…' : (isEdit ? 'Save Changes' : 'Create Customer') }}
         </button>
-      </div>
+      </ActionFooter>
 
     </template>
   </div>
@@ -257,6 +254,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCustomerStore } from '@/stores/customers'
 import { api } from '@/composables/useApi'
+import ActionFooter from '@/components/shared/ActionFooter.vue'
 
 const route         = useRoute()
 const router        = useRouter()

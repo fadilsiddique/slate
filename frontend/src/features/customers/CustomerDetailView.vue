@@ -33,18 +33,7 @@
         </svg>
         Back
       </button>
-      <div class="flex flex-col items-center justify-center py-20 px-6 text-center">
-        <div class="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-        </div>
-        <p class="font-semibold text-gray-800">Customer not found</p>
-        <p class="text-sm text-muted mt-1">{{ error }}</p>
-        <button class="mt-5 px-5 py-2 bg-primary text-white rounded-xl text-sm font-semibold" @click="reload">
-          Retry
-        </button>
-      </div>
+      <ErrorState title="Customer not found" :message="error" retry-label="Retry" @retry="reload" />
     </template>
 
     <!-- ── Loaded ─────────────────────────────────────────────────────────── -->
@@ -238,12 +227,15 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCustomerStore } from '@/stores/customers'
+import { useFormatters } from '@/composables/useFormatters'
+import ErrorState from '@/components/shared/ErrorState.vue'
 
 const route         = useRoute()
 const router        = useRouter()
 const customerStore = useCustomerStore()
 
 const customerName = route.params.name
+const { fmt, fmtDate } = useFormatters()
 
 // ── State ──────────────────────────────────────────────────────────────────────
 const customer  = ref(null)
@@ -267,19 +259,6 @@ const initials = computed(() => {
   return name.split(' ').slice(0, 2).map((w) => w[0] ?? '').join('').toUpperCase()
 })
 
-// ── Formatters ─────────────────────────────────────────────────────────────────
-const _fmtNum = new Intl.NumberFormat(undefined, {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-})
-function fmt(v) { return _fmtNum.format(+v || 0) }
-
-function fmtDate(d) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString(undefined, {
-    day: 'numeric', month: 'short', year: 'numeric',
-  })
-}
 
 function txnBadgeClass(txn) {
   if (txn.docstatus === 2) return 'bg-red-100 text-red-600'

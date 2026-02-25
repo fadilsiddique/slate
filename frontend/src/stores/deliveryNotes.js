@@ -132,7 +132,8 @@ export const useDeliveryNoteStore = defineStore('deliveryNotes', () => {
 
   // ── Create Sales Invoice ──────────────────────────────────────────────────────
   /**
-   * Map a submitted Delivery Note to a Sales Invoice draft and save it.
+   * Map a submitted Delivery Note to a Sales Invoice doc (unsaved).
+   * Caller sets prefill on the invoice store and navigates to InvoiceNew.
    * @param {string} dnName
    */
   async function createSalesInvoice(dnName) {
@@ -140,10 +141,7 @@ export const useDeliveryNoteStore = defineStore('deliveryNotes', () => {
       'erpnext.stock.doctype.delivery_note.delivery_note.make_sales_invoice',
       { source_name: dnName },
     )
-    const result = await api.saveDoc('Sales Invoice', siDoc)
-    const saved  = result?.data ?? result
-    invalidate(dnName)
-    return saved
+    return siDoc?.data ?? siDoc
   }
 
   // ── Warehouse list ────────────────────────────────────────────────────────────

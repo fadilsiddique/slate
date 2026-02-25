@@ -1,0 +1,1 @@
+import{_ as t,j as o,c as r,K as s}from"./index.js";const c={},n={class:"fixed bottom-16 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-t border-muted/20 px-4 py-3 shadow-lg",style:{"max-width":"480px","margin-inline":"auto"}};function a(e,d){return o(),r("div",n,[s(e.$slots,"default")])}const l=t(c,[["render",a]]);export{l as A};

@@ -146,7 +146,8 @@ export const useOrderStore = defineStore('orders', () => {
 
   // ── Create Sales Invoice ──────────────────────────────────────────────────────
   /**
-   * Map a submitted Sales Order to a Sales Invoice draft and save it.
+   * Map a submitted Sales Order to a Sales Invoice doc (unsaved).
+   * Caller sets prefill on the invoice store and navigates to InvoiceNew.
    * @param {string} soName
    */
   async function createSalesInvoice(soName) {
@@ -154,9 +155,7 @@ export const useOrderStore = defineStore('orders', () => {
       'erpnext.selling.doctype.sales_order.sales_order.make_sales_invoice',
       { source_name: soName },
     )
-    const saved = await api.saveDoc('Sales Invoice', siDoc)
-    invalidate(soName)
-    return saved
+    return siDoc?.data ?? siDoc
   }
 
   // ── Cache invalidation ────────────────────────────────────────────────────────

@@ -2,21 +2,7 @@
   <div class="flex flex-col min-h-full">
 
     <!-- ── Pull-to-refresh indicator ─────────────────────────────────────── -->
-    <div
-      class="flex items-center justify-center overflow-hidden bg-surface transition-all duration-200"
-      :style="{ height: refreshing ? '52px' : `${pullRatio * 52}px`, opacity: Math.max(pullRatio, refreshing ? 1 : 0) }"
-    >
-      <svg
-        class="w-5 h-5 text-primary"
-        :class="refreshing ? 'animate-spin' : ''"
-        :style="{ transform: refreshing ? '' : `rotate(${pullRatio * 360}deg)` }"
-        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
-      >
-        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-      </svg>
-    </div>
+    <PullToRefreshIndicator :pull-ratio="pullRatio" :refreshing="refreshing" />
 
     <!-- ── Sticky header ──────────────────────────────────────────────────── -->
     <header class="bg-white sticky top-0 z-10 border-b border-muted/20 shadow-sm">
@@ -32,28 +18,12 @@
 
       <!-- Search bar -->
       <div class="px-4 pb-3">
-        <div class="relative">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input
-            v-model="search"
-            type="search"
-            placeholder="Search customers…"
-            autocomplete="off"
-            class="w-full pl-9 pr-9 py-2.5 text-sm bg-surface rounded-xl border-none focus:outline-none focus:ring-2 focus:ring-primary transition"
-            @input="debouncedReload"
-          />
-          <button
-            v-if="search"
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-gray-600 p-0.5"
-            @click="clearSearch"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
+        <SearchBar
+          v-model="search"
+          placeholder="Search customers…"
+          @input="debouncedReload"
+          @clear="clearSearch"
+        />
       </div>
 
       <!-- Filter chips — Customer Group (primary) -->
@@ -114,44 +84,18 @@
       </template>
 
       <!-- Error state -->
-      <div
-        v-else-if="error"
-        class="flex flex-col items-center justify-center py-20 text-center"
-      >
-        <div class="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-        </div>
-        <p class="text-gray-700 font-semibold">Couldn't load customers</p>
-        <p class="text-red-400 text-xs mt-1 px-6 break-all">{{ error }}</p>
-        <button
-          class="mt-4 px-5 py-2 bg-primary text-white rounded-xl text-sm font-semibold"
-          @click="reload(true)"
-        >Try again</button>
-      </div>
+      <ErrorState v-else-if="error" title="Couldn't load customers" :message="error" @retry="reload(true)" />
 
       <!-- Empty state -->
-      <div
+      <EmptyState
         v-else-if="!loading && customers.length === 0"
-        class="flex flex-col items-center justify-center py-20 text-center"
+        title="No customers found"
+        subtitle="Try adjusting your search or filters"
+        :show-clear="!!(search || activeGroup || activeTerritory)"
+        @clear="clearFilters"
       >
-        <div class="w-16 h-16 rounded-2xl bg-surface flex items-center justify-center mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-muted/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-          </svg>
-        </div>
-        <p class="text-gray-700 font-semibold">No customers found</p>
-        <p class="text-muted text-sm mt-1">Try adjusting your search or filters</p>
-        <button
-          v-if="search || activeGroup || activeTerritory"
-          class="mt-4 px-5 py-2 bg-primary text-white rounded-xl text-sm font-semibold"
-          @click="clearFilters"
-        >Clear filters</button>
-      </div>
+        <template #icon><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></template>
+      </EmptyState>
 
       <!-- ── Customer list ───────────────────────────────────────────────── -->
       <div v-else class="space-y-2">
@@ -206,22 +150,21 @@
     </div>
 
     <!-- ── FAB — New Customer ─────────────────────────────────────────────── -->
-    <button
-      class="fixed bottom-20 right-4 w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform z-20"
-      @click="router.push({ name: 'CustomerNew' })"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-      </svg>
-    </button>
+    <FloatingActionButton @click="router.push({ name: 'CustomerNew' })" />
   </div>
 </template>
 
 <script setup>
-import { ref, inject, onMounted, onUnmounted } from 'vue'
+import { ref, inject, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCustomerStore } from '@/stores/customers'
 import { usePullToRefresh } from '@/composables/usePullToRefresh'
+import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
+import SearchBar from '@/components/shared/SearchBar.vue'
+import ErrorState from '@/components/shared/ErrorState.vue'
+import EmptyState from '@/components/shared/EmptyState.vue'
+import PullToRefreshIndicator from '@/components/shared/PullToRefreshIndicator.vue'
+import FloatingActionButton from '@/components/shared/FloatingActionButton.vue'
 
 const router        = useRouter()
 const customerStore = useCustomerStore()
@@ -243,17 +186,10 @@ const totalLoaded = ref(0)
 const { pullRatio, refreshing } = usePullToRefresh(scrollEl, () => reload(true))
 
 // ── Infinite scroll ───────────────────────────────────────────────────────────
-const sentinel = ref(null)
-let observer   = null
-
-onMounted(() => {
-  observer = new IntersectionObserver(
-    ([entry]) => { if (entry.isIntersecting && hasMore.value && !loading.value) loadMore() },
-    { rootMargin: '150px' },
-  )
-  if (sentinel.value) observer.observe(sentinel.value)
-})
-onUnmounted(() => observer?.disconnect())
+const { sentinel } = useInfiniteScroll(
+  () => hasMore.value && !loading.value,
+  loadMore,
+)
 
 // ── Data loading ──────────────────────────────────────────────────────────────
 async function reload(force = false) {

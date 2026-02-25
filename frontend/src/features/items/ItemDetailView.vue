@@ -27,18 +27,7 @@
         </svg>
         Back
       </button>
-      <div class="flex flex-col items-center justify-center py-20 px-6 text-center">
-        <div class="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-        </div>
-        <p class="font-semibold text-gray-800">Item not found</p>
-        <p class="text-sm text-gray-400 mt-1">{{ error }}</p>
-        <button class="mt-5 px-5 py-2 bg-primary text-white rounded-xl text-sm font-semibold" @click="reload">
-          Retry
-        </button>
-      </div>
+      <ErrorState title="Item not found" :message="error" retry-label="Retry" @retry="reload" />
     </template>
 
     <!-- ── Loaded ─────────────────────────────────────────────────────────── -->
@@ -276,10 +265,7 @@
       </div>
 
       <!-- ── Sticky CTA footer ──────────────────────────────────────────── -->
-      <div
-        class="fixed bottom-16 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-t border-muted/20 px-4 py-3 shadow-lg"
-        style="max-width: 480px; margin-inline: auto;"
-      >
+      <ActionFooter>
         <div class="flex items-center gap-3">
           <!-- Qty stepper -->
           <div class="flex items-center gap-2 bg-surface rounded-xl px-3 py-2">
@@ -318,7 +304,7 @@
             {{ addedFeedback ? 'Added!' : `Add ${qty > 1 ? qty + '× ' : ''}to Cart` }}
           </button>
         </div>
-      </div>
+      </ActionFooter>
     </template>
   </div>
 </template>
@@ -328,11 +314,15 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useItemStore } from '@/stores/items'
 import { useCartStore } from '@/stores/cart'
+import { useFormatters } from '@/composables/useFormatters'
+import ErrorState from '@/components/shared/ErrorState.vue'
+import ActionFooter from '@/components/shared/ActionFooter.vue'
 
 const route     = useRoute()
 const router    = useRouter()
 const itemStore = useItemStore()
 const cart      = useCartStore()
+const { fmt } = useFormatters()
 
 const itemCode = route.params.itemCode
 
@@ -404,9 +394,6 @@ function sanitizeHtml(html) {
   return (html ?? '').replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
 }
 
-// ── Currency formatter ────────────────────────────────────────────────────────
-const _fmt = new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-function fmt(v) { return _fmt.format(v) }
 
 onMounted(reload)
 </script>

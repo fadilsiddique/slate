@@ -50,35 +50,17 @@
           </div>
 
           <!-- Searchable (standalone) -->
-          <div v-else class="relative">
-            <input
-              v-model="customerQuery"
-              type="text"
-              placeholder="Search customer…"
-              autocomplete="off"
-              class="w-full px-4 py-3 text-sm bg-white rounded-xl border transition focus:outline-none"
-              :class="submitted && v.customer
-                ? 'border-red-400 ring-1 ring-red-400'
-                : 'border-muted/40 focus:border-primary focus:ring-1 focus:ring-primary'"
-              @focus="onCustomerFocus"
-              @input="onCustomerInput"
-              @blur="hideCustomerResultsDelayed"
-            />
-            <ul
-              v-if="customerResults.length"
-              class="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-muted/30 rounded-xl shadow-lg max-h-48 overflow-y-auto"
-            >
-              <li
-                v-for="c in customerResults"
-                :key="c.name"
-                class="px-4 py-2.5 text-sm text-gray-800 hover:bg-surface cursor-pointer"
-                @mousedown.prevent="selectCustomer(c)"
-              >
-                {{ c.customer_name }}
-                <span v-if="c.customer_name !== c.name" class="text-xs text-muted ml-1">({{ c.name }})</span>
-              </li>
-            </ul>
-          </div>
+          <AutocompleteInput
+            v-else
+            v-model="customerQuery"
+            :results="normalizedCustomerResults"
+            :error="submitted && v.customer"
+            placeholder="Search customer…"
+            @input="onCustomerInput"
+            @focus="onCustomerFocus"
+            @blur="hideCustomerResultsDelayed"
+            @select="selectCustomer"
+          />
           <p v-if="submitted && v.customer" class="mt-1 text-xs text-red-500">
             Customer is required
           </p>
@@ -281,10 +263,7 @@
       </div>
 
       <!-- ── Sticky footer ──────────────────────────────────────────────────── -->
-      <div
-        class="fixed bottom-16 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-t border-muted/20 px-4 py-3 shadow-lg"
-        style="max-width: 480px; margin-inline: auto;"
-      >
+      <ActionFooter>
         <button
           type="button"
           class="w-full bg-primary text-white rounded-xl py-3 font-semibold text-sm flex items-center justify-center gap-2 active:scale-[.97] transition-transform"
@@ -298,7 +277,7 @@
           </svg>
           {{ saving ? 'Saving…' : 'Save Draft' }}
         </button>
-      </div>
+      </ActionFooter>
 
     </template>
   </div>
@@ -310,10 +289,14 @@ import { useRouter } from 'vue-router'
 import { useDeliveryNoteStore } from '@/stores/deliveryNotes'
 import { useDefaultsStore } from '@/stores/defaults'
 import { api } from '@/composables/useApi'
+import { useFormatters } from '@/composables/useFormatters'
+import ActionFooter from '@/components/shared/ActionFooter.vue'
+import AutocompleteInput from '@/components/shared/AutocompleteInput.vue'
 
 const router        = useRouter()
 const dnStore       = useDeliveryNoteStore()
 const defaultsStore = useDefaultsStore()
+const { fmt } = useFormatters()
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function today() {
@@ -410,10 +393,18 @@ function onCustomerFocus() {
   _doCustomerSearch(customerQuery.value)
 }
 
-function selectCustomer(c) {
-  customerId.value      = c.name
-  customerLabel.value   = c.customer_name
-  customerQuery.value   = c.customer_name
+const normalizedCustomerResults = computed(() =>
+  customerResults.value.map(c => ({
+    id:       c.name,
+    label:    c.customer_name,
+    sublabel: c.customer_name !== c.name ? c.name : null,
+  }))
+)
+
+function selectCustomer(item) {
+  customerId.value      = item.id
+  customerLabel.value   = item.label
+  customerQuery.value   = item.label
   customerResults.value = []
 }
 
@@ -582,8 +573,4 @@ onMounted(async () => {
   loadingInit.value = false
 })
 
-// ── Formatters ────────────────────────────────────────────────────────────────
-const _fmt = new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-function fmt(n)      { return _fmt.format(n ?? 0) }
-function fmtShort(n) { return _fmt.format(n ?? 0) }
 </script>

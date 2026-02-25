@@ -27,34 +27,14 @@
         </button>
         <h1 class="text-lg font-bold text-gray-900">Delivery Note</h1>
       </header>
-      <div class="flex flex-col items-center justify-center py-20 text-center px-6">
-        <div class="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-        </div>
-        <p class="text-gray-700 font-semibold">Couldn't load delivery note</p>
-        <p class="text-red-400 text-xs mt-1 break-all">{{ error }}</p>
-        <button
-          class="mt-4 px-5 py-2 bg-primary text-white rounded-xl text-sm font-semibold"
-          @click="loadNote"
-        >Try again</button>
-      </div>
+      <ErrorState title="Couldn't load delivery note" :message="error" @retry="loadNote" />
     </template>
 
     <!-- ── Loaded ──────────────────────────────────────────────────────────── -->
     <template v-else-if="dn">
 
       <!-- Absolute top nav (back only — no edit for DNs) -->
-      <div class="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-4 bg-white/80 backdrop-blur-sm border-b border-muted/20">
-        <button
-          class="w-8 h-8 rounded-xl border border-muted/30 flex items-center justify-center shrink-0"
-          @click="router.back()"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-        </button>
+      <DetailTopNav @back="router.back()">
         <ShareButton
           doctype="Delivery Note"
           :doc-name="dnName"
@@ -63,7 +43,7 @@
           :currency="currency"
           @error="shareError = $event"
         />
-      </div>
+      </DetailTopNav>
 
       <!-- Content -->
       <div class="pt-16 px-4 pb-36 space-y-4">
@@ -72,10 +52,7 @@
         <div class="bg-white rounded-2xl px-5 py-4 border border-muted/20 shadow-sm">
           <div class="flex items-start justify-between gap-2 mb-2">
             <span class="text-[11px] font-mono text-muted/80">{{ dn.name }}</span>
-            <span
-              class="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold"
-              :class="statusBadgeClass(dn)"
-            >{{ statusLabel(dn) }}</span>
+            <StatusBadge :label="statusLabel(dn)" :color-class="statusBadgeClass(dn)" />
           </div>
           <h1 class="text-xl font-bold text-gray-900 leading-tight mb-1">
             {{ dn.customer_name || dn.customer || '—' }}
@@ -92,10 +69,7 @@
         </div>
 
         <!-- Items card -->
-        <div class="bg-white rounded-2xl border border-muted/20 shadow-sm overflow-hidden">
-          <div class="px-4 py-3 border-b border-muted/20">
-            <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Items</p>
-          </div>
+        <SectionCard title="Items">
           <div class="divide-y divide-muted/10">
             <div
               v-for="item in dn.items ?? []"
@@ -118,16 +92,10 @@
               No items
             </div>
           </div>
-        </div>
+        </SectionCard>
 
         <!-- Sales Order reference card -->
-        <div
-          v-if="sourceSoName"
-          class="bg-white rounded-2xl border border-muted/20 shadow-sm overflow-hidden"
-        >
-          <div class="px-4 py-3 border-b border-muted/20">
-            <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Source Sales Order</p>
-          </div>
+        <SectionCard v-if="sourceSoName" title="Source Sales Order">
           <div class="px-4 py-3">
             <button
               class="flex items-center justify-between w-full text-left"
@@ -139,13 +107,10 @@
               </svg>
             </button>
           </div>
-        </div>
+        </SectionCard>
 
         <!-- Summary card -->
-        <div class="bg-white rounded-2xl border border-muted/20 shadow-sm overflow-hidden">
-          <div class="px-4 py-3 border-b border-muted/20">
-            <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Summary</p>
-          </div>
+        <SectionCard title="Summary">
           <div class="px-4 py-3 space-y-2">
             <div class="flex justify-between text-sm text-gray-600">
               <span>Net Total</span>
@@ -166,29 +131,19 @@
               <span>{{ currency }} {{ fmt(dn.grand_total) }}</span>
             </div>
           </div>
-        </div>
+        </SectionCard>
 
         <!-- Terms card -->
-        <div
-          v-if="dn.terms"
-          class="bg-white rounded-2xl border border-muted/20 shadow-sm overflow-hidden"
-        >
-          <div class="px-4 py-3 border-b border-muted/20">
-            <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Terms &amp; Conditions</p>
-          </div>
+        <SectionCard v-if="dn.terms" title="Terms &amp; Conditions">
           <div class="px-4 py-3">
             <p class="text-sm text-gray-700 whitespace-pre-line">{{ dn.terms }}</p>
           </div>
-        </div>
+        </SectionCard>
 
       </div>
 
       <!-- ── Action footer ─────────────────────────────────────────────────── -->
-      <div
-        v-if="showActions"
-        class="fixed bottom-16 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-t border-muted/20 px-4 py-3 shadow-lg"
-        style="max-width: 480px; margin-inline: auto;"
-      >
+      <ActionFooter v-if="showActions">
         <!-- Draft: Submit -->
         <div v-if="dn.docstatus === 0">
           <button
@@ -226,7 +181,7 @@
           <p class="text-sm text-green-700 font-semibold">✓ Fully Billed</p>
           <p class="text-xs text-muted mt-0.5">This delivery has been invoiced</p>
         </div>
-      </div>
+      </ActionFooter>
 
     </template>
   </div>
@@ -236,13 +191,22 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDeliveryNoteStore } from '@/stores/deliveryNotes'
+import { useInvoiceStore } from '@/stores/invoices'
 import ShareButton from '@/components/shared/ShareButton.vue'
+import ErrorState from '@/components/shared/ErrorState.vue'
+import SectionCard from '@/components/shared/SectionCard.vue'
+import ActionFooter from '@/components/shared/ActionFooter.vue'
+import StatusBadge from '@/components/shared/StatusBadge.vue'
+import DetailTopNav from '@/components/shared/DetailTopNav.vue'
+import { useFormatters } from '@/composables/useFormatters'
 
-const route   = useRoute()
-const router  = useRouter()
-const dnStore = useDeliveryNoteStore()
+const route        = useRoute()
+const router       = useRouter()
+const dnStore      = useDeliveryNoteStore()
+const invoiceStore = useInvoiceStore()
 
 const dnName = route.params.name
+const { fmt, fmtDate } = useFormatters()
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const dn          = ref(null)
@@ -296,12 +260,12 @@ async function handleCreateSI() {
   actioning.value   = true
   actionError.value = null
   try {
-    await dnStore.createSalesInvoice(dnName)
-    dn.value = await dnStore.fetchDeliveryNoteDetail(dnName)
+    const siDoc = await dnStore.createSalesInvoice(dnName)
+    invoiceStore.setPrefill(siDoc)
+    router.push({ name: 'InvoiceNew' })
   } catch (e) {
     actionError.value = e?.message ?? 'Failed to create Sales Invoice'
-  } finally {
-    actioning.value = false
+    actioning.value   = false
   }
 }
 
@@ -320,12 +284,6 @@ function statusBadgeClass(d) {
     Completed:  'bg-green-50 text-green-700',
   }
   return map[d.status] ?? 'bg-gray-100 text-gray-600'
-}
-
-const _fmt = new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-function fmt(n)     { return _fmt.format(n ?? 0) }
-function fmtDate(d) {
-  return d ? new Date(d).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
 }
 
 // ── Mount ─────────────────────────────────────────────────────────────────────
