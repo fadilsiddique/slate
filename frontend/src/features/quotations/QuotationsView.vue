@@ -14,16 +14,58 @@
             {{ totalLoaded }} quotation{{ totalLoaded !== 1 ? 's' : '' }}
           </p>
         </div>
+        <!-- Sort toggle -->
+        <div class="flex items-center gap-0.5 bg-surface p-0.5 rounded-lg shrink-0">
+          <button
+            v-for="s in SORT_OPTIONS"
+            :key="s.key"
+            class="px-2.5 py-1 rounded-md text-[11px] font-semibold transition-colors"
+            :class="sortBy === s.key ? 'bg-white shadow text-gray-800' : 'text-muted'"
+            @click="setSortBy(s.key)"
+          >{{ s.label }}</button>
+        </div>
       </div>
 
       <!-- Search bar -->
       <div class="px-4 pb-2">
         <SearchBar
           v-model="search"
-          placeholder="Search by customer name…"
+          placeholder="Filter by customer name…"
           @input="debouncedReload"
           @clear="clearSearch"
         />
+      </div>
+
+      <!-- Date range filter -->
+      <div class="px-4 pb-2 flex items-center gap-2">
+        <label class="flex-1 flex items-center gap-2 px-3 py-2 bg-surface border border-muted/25 rounded-xl">
+          <span class="text-[10px] font-semibold text-muted uppercase tracking-wide shrink-0">From</span>
+          <input
+            type="date"
+            v-model="dateFrom"
+            class="flex-1 text-xs text-gray-700 bg-transparent outline-none min-w-0"
+            @change="reload()"
+          />
+        </label>
+        <span class="text-muted/40 text-xs shrink-0">—</span>
+        <label class="flex-1 flex items-center gap-2 px-3 py-2 bg-surface border border-muted/25 rounded-xl">
+          <span class="text-[10px] font-semibold text-muted uppercase tracking-wide shrink-0">To</span>
+          <input
+            type="date"
+            v-model="dateTo"
+            class="flex-1 text-xs text-gray-700 bg-transparent outline-none min-w-0"
+            @change="reload()"
+          />
+        </label>
+        <button
+          v-if="dateFrom || dateTo"
+          class="w-8 h-8 rounded-xl bg-muted/10 flex items-center justify-center shrink-0 text-muted"
+          @click="clearDates"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
       </div>
 
       <!-- Status tabs -->
@@ -47,8 +89,8 @@
       <EmptyState
         v-else-if="!loading && quotations.length === 0"
         title="No quotations found"
-        subtitle="Try adjusting your search or status filter"
-        :show-clear="!!(search || activeStatus)"
+        subtitle="Try adjusting your search or filters"
+        :show-clear="!!(search || activeStatus || dateFrom || dateTo)"
         @clear="clearFilters"
       >
         <template #icon><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/></template>
@@ -125,11 +167,15 @@ const scrollEl       = inject('scrollEl')  // provided by AppShell
 const { fmt, fmtDate } = useFormatters()
 
 // ── Status tabs ───────────────────────────────────────────────────────────────
-const STATUS_TABS = ['All', 'Draft', 'Open', 'Replied', 'Ordered', 'Lost', 'Cancelled']
+const STATUS_TABS  = ['All', 'Draft', 'Open', 'Replied', 'Ordered', 'Lost', 'Cancelled']
+const SORT_OPTIONS = [{ key: 'creation', label: 'Created' }, { key: 'modified', label: 'Updated' }]
 
 // ── Display state ─────────────────────────────────────────────────────────────
 const search       = ref('')
 const activeStatus = ref('')
+const sortBy       = ref('creation')
+const dateFrom     = ref('')
+const dateTo       = ref('')
 
 const quotations  = ref([])
 const loading     = ref(false)
@@ -157,9 +203,12 @@ async function reload(force = false) {
 
   try {
     const res = await quotationStore.fetchQuotations({
-      search: search.value,
-      status: activeStatus.value,
-      start:  0,
+      search:   search.value,
+      status:   activeStatus.value,
+      sortBy:   sortBy.value,
+      dateFrom: dateFrom.value,
+      dateTo:   dateTo.value,
+      start:    0,
     })
     quotations.value  = res.data ?? []
     hasMore.value     = res.hasMore
@@ -178,9 +227,12 @@ async function loadMore() {
   loading.value = true
   try {
     const res = await quotationStore.fetchQuotations({
-      search: search.value,
-      status: activeStatus.value,
-      start:  nextStart.value,
+      search:   search.value,
+      status:   activeStatus.value,
+      sortBy:   sortBy.value,
+      dateFrom: dateFrom.value,
+      dateTo:   dateTo.value,
+      start:    nextStart.value,
     })
     quotations.value  = [...quotations.value, ...(res.data ?? [])]
     hasMore.value     = res.hasMore
@@ -200,9 +252,11 @@ function debouncedReload() {
   searchTimer = setTimeout(() => reload(), 320)
 }
 
+function setSortBy(key)  { sortBy.value = key; reload() }
+function clearDates()   { dateFrom.value = ''; dateTo.value = ''; reload() }
 function setStatus(s)   { activeStatus.value = s; reload() }
 function clearSearch()  { search.value = ''; reload() }
-function clearFilters() { search.value = ''; activeStatus.value = ''; reload() }
+function clearFilters() { search.value = ''; activeStatus.value = ''; dateFrom.value = ''; dateTo.value = ''; reload() }
 function openQuotation(q) { router.push({ name: 'QuotationDetail', params: { name: q.name } }) }
 
 function statusLabel(q) {
