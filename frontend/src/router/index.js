@@ -29,9 +29,21 @@ const routes = [
         component: () => import('@/features/items/ItemsView.vue'),
       },
       {
+        path: 'items/new',
+        name: 'ItemNew',
+        component: () => import('@/features/items/ItemFormView.vue'),
+        meta: { transition: 'slide' },
+      },
+      {
         path: 'items/:itemCode',
         name: 'ItemDetail',
         component: () => import('@/features/items/ItemDetailView.vue'),
+        meta: { transition: 'slide' },
+      },
+      {
+        path: 'items/:itemCode/edit',
+        name: 'ItemEdit',
+        component: () => import('@/features/items/ItemFormView.vue'),
         meta: { transition: 'slide' },
       },
       {
