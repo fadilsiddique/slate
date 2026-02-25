@@ -190,6 +190,14 @@ export const useItemStore = defineStore('items', () => {
     }
   }
 
+  // ── Save ────────────────────────────────────────────────────────────────────
+  async function saveItem(doc) {
+    const result = await api.saveDoc('Item', doc)
+    const saved  = result?.data ?? result
+    invalidate(doc.item_code ?? null)
+    return saved
+  }
+
   return {
     itemGroups,
     brands,
@@ -197,6 +205,7 @@ export const useItemStore = defineStore('items', () => {
     fetchItems,
     fetchItemDetail,
     stockSummary,
+    saveItem,
     invalidate,
   }
 })

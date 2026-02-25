@@ -192,6 +192,9 @@
         — {{ items.length }} items shown —
       </p>
     </div>
+
+    <!-- ── FAB — New Item ──────────────────────────────────────────────────── -->
+    <FloatingActionButton @click="router.push({ name: 'ItemNew' })" />
   </div>
 </template>
 
@@ -208,6 +211,7 @@ import SearchBar from '@/components/shared/SearchBar.vue'
 import ErrorState from '@/components/shared/ErrorState.vue'
 import EmptyState from '@/components/shared/EmptyState.vue'
 import PullToRefreshIndicator from '@/components/shared/PullToRefreshIndicator.vue'
+import FloatingActionButton from '@/components/shared/FloatingActionButton.vue'
 
 const router       = useRouter()
 const itemStore    = useItemStore()
