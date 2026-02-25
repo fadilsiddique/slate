@@ -14,20 +14,24 @@
             {{ totalLoaded }} invoice{{ totalLoaded !== 1 ? 's' : '' }}
           </p>
         </div>
+        <SortToggle v-model="sortBy" @update:model-value="reload()" />
       </div>
 
       <!-- Search bar -->
       <div class="px-4 pb-2">
         <SearchBar
           v-model="search"
-          placeholder="Search by customer name…"
+          placeholder="Filter by customer name…"
           @input="debouncedReload"
           @clear="clearSearch"
         />
       </div>
 
-      <!-- Status tabs -->
-      <StatusTabStrip :tabs="STATUS_TABS" v-model="activeStatus" :active-class="activeTabClass" @update:model-value="reload()" />
+      <!-- Filter row: Status + Date -->
+      <div class="px-4 pb-3 flex items-center gap-2">
+        <StatusSelect v-model="activeStatus" :options="STATUS_TABS" @update:model-value="reload()" />
+        <DateRangePicker v-model:from="dateFrom" v-model:to="dateTo" @apply="reload()" />
+      </div>
     </header>
 
     <!-- ── Content area ───────────────────────────────────────────────────── -->
@@ -48,7 +52,7 @@
         v-else-if="!loading && invoices.length === 0"
         title="No invoices found"
         subtitle="Try adjusting your search or status filter"
-        :show-clear="!!(search || activeStatus)"
+        :show-clear="!!(search || activeStatus || dateFrom || dateTo)"
         @clear="clearFilters"
       >
         <template #icon><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></template>
@@ -127,7 +131,9 @@ import EmptyState from '@/components/shared/EmptyState.vue'
 import StatusBadge from '@/components/shared/StatusBadge.vue'
 import PullToRefreshIndicator from '@/components/shared/PullToRefreshIndicator.vue'
 import FloatingActionButton from '@/components/shared/FloatingActionButton.vue'
-import StatusTabStrip from '@/components/shared/StatusTabStrip.vue'
+import SortToggle from '@/components/shared/SortToggle.vue'
+import StatusSelect from '@/components/shared/StatusSelect.vue'
+import DateRangePicker from '@/components/shared/DateRangePicker.vue'
 
 const router       = useRouter()
 const invoiceStore = useInvoiceStore()
@@ -137,9 +143,12 @@ const { fmt, fmtDate } = useFormatters()
 // ── Status tabs ───────────────────────────────────────────────────────────────
 const STATUS_TABS = ['All', 'Draft', 'Unpaid', 'Overdue', 'Paid', 'Return', 'Cancelled']
 
-// ── Display state ─────────────────────────────────────────────────────────────
+// ── Filter state ──────────────────────────────────────────────────────────────
 const search       = ref('')
 const activeStatus = ref('')
+const sortBy       = ref('creation')
+const dateFrom     = ref('')
+const dateTo       = ref('')
 
 const invoices    = ref([])
 const loading     = ref(false)
@@ -167,9 +176,12 @@ async function reload(force = false) {
 
   try {
     const res = await invoiceStore.fetchInvoices({
-      search: search.value,
-      status: activeStatus.value,
-      start:  0,
+      search:   search.value,
+      status:   activeStatus.value,
+      sortBy:   sortBy.value,
+      dateFrom: dateFrom.value,
+      dateTo:   dateTo.value,
+      start:    0,
     })
     invoices.value    = res.data ?? []
     hasMore.value     = res.hasMore
@@ -188,9 +200,12 @@ async function loadMore() {
   loading.value = true
   try {
     const res = await invoiceStore.fetchInvoices({
-      search: search.value,
-      status: activeStatus.value,
-      start:  nextStart.value,
+      search:   search.value,
+      status:   activeStatus.value,
+      sortBy:   sortBy.value,
+      dateFrom: dateFrom.value,
+      dateTo:   dateTo.value,
+      start:    nextStart.value,
     })
     invoices.value    = [...invoices.value, ...(res.data ?? [])]
     hasMore.value     = res.hasMore
@@ -211,7 +226,7 @@ function debouncedReload() {
 }
 
 function clearSearch()  { search.value = ''; reload() }
-function clearFilters() { search.value = ''; activeStatus.value = ''; reload() }
+function clearFilters() { search.value = ''; activeStatus.value = ''; dateFrom.value = ''; dateTo.value = ''; reload() }
 
 function statusLabel(si) {
   if (si.docstatus === 2) return 'Cancelled'
@@ -232,26 +247,9 @@ function statusBadgeClass(si) {
   return map[si.status] ?? 'bg-gray-100 text-gray-600'
 }
 
-function activeTabClass(tab) {
-  const map = {
-    All:       'bg-primary text-white border-primary',
-    Draft:     'bg-gray-600 text-white border-gray-600',
-    Unpaid:    'bg-amber-500 text-white border-amber-500',
-    Overdue:   'bg-red-500 text-white border-red-500',
-    Paid:      'bg-green-600 text-white border-green-600',
-    Return:    'bg-purple-600 text-white border-purple-600',
-    Cancelled: 'bg-gray-400 text-white border-gray-400',
-  }
-  return map[tab] ?? 'bg-primary text-white border-primary'
-}
-
 // ── Boot ──────────────────────────────────────────────────────────────────────
 onMounted(async () => {
   await reload()
 })
 </script>
 
-<style scoped>
-.scrollbar-none { scrollbar-width: none; }
-.scrollbar-none::-webkit-scrollbar { display: none; }
-</style>

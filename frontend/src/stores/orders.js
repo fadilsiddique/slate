@@ -44,8 +44,8 @@ export const useOrderStore = defineStore('orders', () => {
    *
    * @param {{ search?: string, status?: string, start?: number }} opts
    */
-  async function fetchOrders({ search = '', status = '', start = 0 } = {}) {
-    const key = `${search.trim().toLowerCase()}|${status}`
+  async function fetchOrders({ search = '', status = '', sortBy = 'creation', dateFrom = '', dateTo = '', start = 0 } = {}) {
+    const key = `${search.trim().toLowerCase()}|${status}|${sortBy}|${dateFrom}|${dateTo}`
 
     if (start === 0) {
       const hit = _listCache.get(key)
@@ -54,6 +54,8 @@ export const useOrderStore = defineStore('orders', () => {
 
     const filters = []
     if (search.trim()) filters.push(['customer_name', 'like', `%${search.trim()}%`])
+    if (dateFrom)      filters.push(['transaction_date', '>=', dateFrom])
+    if (dateTo)        filters.push(['transaction_date', '<=', dateTo])
 
     // Map status tab → docstatus/status field filters
     if (status === 'Draft')                 filters.push(['docstatus', '=', 0])
@@ -68,7 +70,7 @@ export const useOrderStore = defineStore('orders', () => {
       filters,
       limit: PAGE_SIZE,
       start,
-      orderBy: 'creation desc',
+      orderBy: sortBy === 'modified' ? 'modified desc' : 'creation desc',
     })
 
     const data    = result?.data ?? result ?? []
