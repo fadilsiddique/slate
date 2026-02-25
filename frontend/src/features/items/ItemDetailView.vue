@@ -53,8 +53,8 @@
         </button>
       </div>
 
-      <!-- ── Image carousel ──────────────────────────────────────────────── -->
-      <div class="relative bg-surface">
+      <!-- ── Image carousel (only when images exist) ────────────────────── -->
+      <div v-if="carouselImages.length > 0" class="relative bg-surface">
         <!-- Swipeable image strip -->
         <div
           ref="carouselRef"
@@ -73,18 +73,6 @@
               class="w-full h-full object-contain"
               loading="lazy"
             />
-          </div>
-          <!-- Fallback when no images -->
-          <div
-            v-if="carouselImages.length === 0"
-            class="snap-center shrink-0 w-full aspect-square flex flex-col items-center justify-center text-muted/40"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-20 h-20 mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-              <circle cx="8.5" cy="8.5" r="1.5"/>
-              <polyline points="21 15 16 10 5 21"/>
-            </svg>
-            <p class="text-sm text-gray-300">No image</p>
           </div>
         </div>
 
@@ -136,7 +124,7 @@
         </div>
       </div>
 
-      <div class="px-4 space-y-5 pb-32">
+      <div class="px-4 space-y-5 pb-8">
 
         <!-- ── Pricing ─────────────────────────────────────────────────── -->
         <section>
@@ -264,47 +252,6 @@
         </section>
       </div>
 
-      <!-- ── Sticky CTA footer ──────────────────────────────────────────── -->
-      <ActionFooter>
-        <div class="flex items-center gap-3">
-          <!-- Qty stepper -->
-          <div class="flex items-center gap-2 bg-surface rounded-xl px-3 py-2">
-            <button
-              class="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-gray-900 active:scale-90 transition"
-              @click="qty = Math.max(1, qty - 1)"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12"/>
-              </svg>
-            </button>
-            <span class="w-6 text-center text-sm font-bold text-gray-900">{{ qty }}</span>
-            <button
-              class="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-gray-900 active:scale-90 transition"
-              @click="qty++"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-              </svg>
-            </button>
-          </div>
-
-          <!-- Add to cart button -->
-          <button
-            class="flex-1 bg-primary text-white rounded-xl py-2.5 font-semibold text-sm flex items-center justify-center gap-2 active:scale-[.97] transition-transform"
-            :class="addedFeedback ? 'bg-green-600' : 'bg-primary'"
-            @click="addToCart"
-          >
-            <svg v-if="!addedFeedback" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-            </svg>
-            <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-            {{ addedFeedback ? 'Added!' : `Add ${qty > 1 ? qty + '× ' : ''}to Cart` }}
-          </button>
-        </div>
-      </ActionFooter>
     </template>
   </div>
 </template>
@@ -313,15 +260,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useItemStore } from '@/stores/items'
-import { useCartStore } from '@/stores/cart'
 import { useFormatters } from '@/composables/useFormatters'
 import ErrorState from '@/components/shared/ErrorState.vue'
-import ActionFooter from '@/components/shared/ActionFooter.vue'
 
 const route     = useRoute()
 const router    = useRouter()
 const itemStore = useItemStore()
-const cart      = useCartStore()
 const { fmt } = useFormatters()
 
 const itemCode = route.params.itemCode
@@ -330,9 +274,7 @@ const itemCode = route.params.itemCode
 const item          = ref(null)
 const loading       = ref(true)
 const error         = ref('')
-const qty           = ref(1)
 const isFav         = ref(false)
-const addedFeedback = ref(false)
 const activeVariant = ref(null)
 
 // ── Carousel ──────────────────────────────────────────────────────────────────
@@ -369,19 +311,6 @@ async function reload() {
 }
 
 // ── Actions ───────────────────────────────────────────────────────────────────
-function addToCart() {
-  if (!item.value) return
-  cart.addItem({
-    item_code: item.value.item_code,
-    item_name: item.value.item_name,
-    rate:      item.value.standard_rate ?? 0,
-    uom:       item.value.stock_uom ?? 'Nos',
-    qty:       qty.value,
-  })
-  addedFeedback.value = true
-  setTimeout(() => { addedFeedback.value = false }, 1800)
-}
-
 function goToVariant(v) {
   activeVariant.value = v.name
   router.push({ name: 'ItemDetail', params: { itemCode: v.name } })

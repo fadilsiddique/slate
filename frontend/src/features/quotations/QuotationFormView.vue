@@ -242,13 +242,8 @@
             </svg>
           </button>
           <div v-if="showNotes" class="px-4 pb-4 pt-2 bg-white border-t border-muted/20">
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Terms &amp; Conditions</label>
-            <textarea
-              v-model="terms"
-              rows="4"
-              placeholder="Terms and conditions…"
-              class="w-full px-4 py-3 text-sm bg-surface rounded-xl border border-muted/40 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition resize-none"
-            />
+            <label class="block text-xs font-semibold text-gray-600 mb-2">Terms &amp; Conditions</label>
+            <TermsSelect v-model="terms" />
           </div>
         </div>
 
@@ -300,6 +295,7 @@ import { useDefaultsStore } from '@/stores/defaults'
 import { api } from '@/composables/useApi'
 import { useFormatters } from '@/composables/useFormatters'
 import ActionFooter from '@/components/shared/ActionFooter.vue'
+import TermsSelect from '@/components/shared/TermsSelect.vue'
 import AutocompleteInput from '@/components/shared/AutocompleteInput.vue'
 
 const route          = useRoute()

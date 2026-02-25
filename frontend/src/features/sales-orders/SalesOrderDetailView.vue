@@ -185,7 +185,7 @@
         <!-- Terms card -->
         <SectionCard v-if="so.terms" title="Terms &amp; Conditions">
           <div class="px-4 py-3">
-            <p class="text-sm text-gray-700 whitespace-pre-line">{{ so.terms }}</p>
+            <div class="terms-html text-sm text-gray-700" v-html="so.terms" />
           </div>
         </SectionCard>
 
@@ -374,3 +374,16 @@ function statusBadgeClass(o) {
 // ── Mount ─────────────────────────────────────────────────────────────────────
 onMounted(loadOrder)
 </script>
+
+<style scoped>
+.terms-html :deep(h1) { font-size: 1.05rem; font-weight: 700; margin: 0.625rem 0 0.25rem; }
+.terms-html :deep(h2) { font-size: 1rem; font-weight: 700; margin: 0.5rem 0 0.25rem; }
+.terms-html :deep(h3),.terms-html :deep(h4) { font-size: 0.875rem; font-weight: 600; margin: 0.4rem 0 0.2rem; }
+.terms-html :deep(p)  { margin: 0.3rem 0; line-height: 1.6; }
+.terms-html :deep(ul) { list-style-type: disc; padding-left: 1.25rem; margin: 0.3rem 0; }
+.terms-html :deep(ol) { list-style-type: decimal; padding-left: 1.25rem; margin: 0.3rem 0; }
+.terms-html :deep(li) { margin: 0.2rem 0; }
+.terms-html :deep(strong) { font-weight: 600; }
+.terms-html :deep(em) { font-style: italic; }
+.terms-html :deep(hr) { border: none; border-top: 1px solid #e5e7eb; margin: 0.5rem 0; }
+</style>
