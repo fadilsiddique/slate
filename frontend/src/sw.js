@@ -97,34 +97,37 @@ self.addEventListener('message', (event) => {
 })
 
 // ─── Firebase Push Notifications ────────────────────────────────────────────
-// Firebase config is passed as a URL query param when registering the SW
+// Firebase config is passed as a URL query param when registering the SW.
+// Wrapped in an async IIFE to avoid top-level await (not supported in es2015 target).
 const jsonConfig = new URL(location).searchParams.get('config')
 if (jsonConfig) {
-  try {
-    const { initializeApp } = await import('firebase/app')
-    const { getMessaging, onBackgroundMessage } = await import('firebase/messaging/sw')
+  ;(async () => {
+    try {
+      const { initializeApp } = await import('firebase/app')
+      const { getMessaging, onBackgroundMessage } = await import('firebase/messaging/sw')
 
-    const firebaseApp = initializeApp(JSON.parse(jsonConfig))
-    const messaging = getMessaging(firebaseApp)
+      const firebaseApp = initializeApp(JSON.parse(jsonConfig))
+      const messaging = getMessaging(firebaseApp)
 
-    onBackgroundMessage(messaging, (payload) => {
-      const title = payload?.data?.title || 'SalesHub'
-      const options = {
-        body: payload?.data?.body || '',
-        icon: payload?.data?.notification_icon || '/assets/slate/frontend/icons/icon-192.png',
-        data: { url: payload?.data?.click_action },
-      }
-      self.registration.showNotification(title, options)
-    })
+      onBackgroundMessage(messaging, (payload) => {
+        const title = payload?.data?.title || 'SalesHub'
+        const options = {
+          body: payload?.data?.body || '',
+          icon: payload?.data?.notification_icon || '/assets/slate/frontend/icons/icon-192.png',
+          data: { url: payload?.data?.click_action },
+        }
+        self.registration.showNotification(title, options)
+      })
 
-    self.addEventListener('notificationclick', (event) => {
-      event.notification.close()
-      const url = event.notification.data?.url
-      if (url) {
-        event.waitUntil(clients.openWindow(url))
-      }
-    })
-  } catch (err) {
-    console.error('[SW] Firebase push notification init failed', err)
-  }
+      self.addEventListener('notificationclick', (event) => {
+        event.notification.close()
+        const url = event.notification.data?.url
+        if (url) {
+          event.waitUntil(clients.openWindow(url))
+        }
+      })
+    } catch (err) {
+      console.error('[SW] Firebase push notification init failed', err)
+    }
+  })()
 }
