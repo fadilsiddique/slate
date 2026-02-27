@@ -156,6 +156,11 @@ const routes = [
         meta: { transition: 'slide' },
       },
       {
+        path: 'notifications',
+        name: 'Notifications',
+        component: () => import('@/features/notifications/NotificationsView.vue'),
+      },
+      {
         path: 'profile',
         name: 'Profile',
         component: () => import('@/features/profile/ProfileView.vue'),
