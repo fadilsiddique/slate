@@ -11,6 +11,12 @@ website_route_rules = [
     {"from_route": "/slate/<path:app_path>", "to_route": "slate"},
 ]
 
+doc_events = {
+    "Notification Log": {
+        "after_insert": "slate.api.notifications.send_push_for_notification_log",
+    }
+}
+
 # Apps
 # ------------------
 
