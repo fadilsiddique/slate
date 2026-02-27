@@ -118,6 +118,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { api } from '@/composables/useApi'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { fmt } = useFormatters()
 
 const props = defineProps({
   doctype:      { type: String, required: true },
@@ -236,9 +239,6 @@ function emailUrl() {
   const body    = `Dear ${props.customerName || 'Customer'},\n\nRef: ${props.docName}\nAmount: ${props.currency} ${fmt(props.grandTotal)}\n\nPDF: ${window.location.origin}${pdfUrl()}`
   return `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
 }
-
-const _fmt = new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-function fmt(n) { return _fmt.format(n ?? 0) }
 
 // ── Mount: fetch print format + letterhead best-effort ────────────────────────
 onMounted(async () => {

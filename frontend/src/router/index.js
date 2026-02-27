@@ -29,9 +29,21 @@ const routes = [
         component: () => import('@/features/items/ItemsView.vue'),
       },
       {
+        path: 'items/new',
+        name: 'ItemNew',
+        component: () => import('@/features/items/ItemFormView.vue'),
+        meta: { transition: 'slide' },
+      },
+      {
         path: 'items/:itemCode',
         name: 'ItemDetail',
         component: () => import('@/features/items/ItemDetailView.vue'),
+        meta: { transition: 'slide' },
+      },
+      {
+        path: 'items/:itemCode/edit',
+        name: 'ItemEdit',
+        component: () => import('@/features/items/ItemFormView.vue'),
         meta: { transition: 'slide' },
       },
       {
@@ -119,6 +131,34 @@ const routes = [
         name: 'DeliveryNoteDetail',
         component: () => import('@/features/delivery-notes/DeliveryNoteDetailView.vue'),
         meta: { transition: 'slide' },
+      },
+      {
+        path: 'invoices',
+        name: 'Invoices',
+        component: () => import('@/features/invoices/InvoicesView.vue'),
+      },
+      {
+        path: 'invoices/new',
+        name: 'InvoiceNew',
+        component: () => import('@/features/invoices/InvoiceFormView.vue'),
+        meta: { transition: 'slide' },
+      },
+      {
+        path: 'invoices/:name',
+        name: 'InvoiceDetail',
+        component: () => import('@/features/invoices/InvoiceDetailView.vue'),
+        meta: { transition: 'slide' },
+      },
+      {
+        path: 'invoices/:name/edit',
+        name: 'InvoiceEdit',
+        component: () => import('@/features/invoices/InvoiceFormView.vue'),
+        meta: { transition: 'slide' },
+      },
+      {
+        path: 'notifications',
+        name: 'Notifications',
+        component: () => import('@/features/notifications/NotificationsView.vue'),
       },
       {
         path: 'profile',

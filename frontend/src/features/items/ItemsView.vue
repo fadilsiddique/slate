@@ -2,21 +2,7 @@
   <div class="flex flex-col min-h-full">
 
     <!-- ── Pull-to-refresh indicator ─────────────────────────────────────── -->
-    <div
-      class="flex items-center justify-center overflow-hidden bg-surface transition-all duration-200"
-      :style="{ height: refreshing ? '52px' : `${pullRatio * 52}px`, opacity: Math.max(pullRatio, refreshing ? 1 : 0) }"
-    >
-      <svg
-        class="w-5 h-5 text-primary"
-        :class="refreshing ? 'animate-spin' : ''"
-        :style="{ transform: refreshing ? '' : `rotate(${pullRatio * 360}deg)` }"
-        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
-      >
-        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-      </svg>
-    </div>
+    <PullToRefreshIndicator :pull-ratio="pullRatio" :refreshing="refreshing" />
 
     <!-- ── Sticky header ──────────────────────────────────────────────────── -->
     <header class="bg-white sticky top-0 z-10 border-b border-muted/20 shadow-sm">
@@ -51,28 +37,12 @@
 
       <!-- Search bar -->
       <div class="px-4 pb-3">
-        <div class="relative">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input
-            v-model="search"
-            type="search"
-            placeholder="Search items…"
-            autocomplete="off"
-            class="w-full pl-9 pr-9 py-2.5 text-sm bg-surface rounded-xl border-none focus:outline-none focus:ring-2 focus:ring-primary transition"
-            @input="debouncedReload"
-          />
-          <button
-            v-if="search"
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-gray-600 p-0.5"
-            @click="clearSearch"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
+        <SearchBar
+          v-model="search"
+          placeholder="Search items…"
+          @input="debouncedReload"
+          @clear="clearSearch"
+        />
       </div>
 
       <!-- Filter chips — Item Group -->
@@ -136,41 +106,18 @@
       </template>
 
       <!-- Error state -->
-      <div
-        v-else-if="error"
-        class="flex flex-col items-center justify-center py-20 text-center"
-      >
-        <div class="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-        </div>
-        <p class="text-gray-700 font-semibold">Couldn't load items</p>
-        <p class="text-red-400 text-xs mt-1 px-6 break-all">{{ error }}</p>
-        <button
-          class="mt-4 px-5 py-2 bg-primary text-white rounded-xl text-sm font-semibold"
-          @click="reload(true)"
-        >Try again</button>
-      </div>
+      <ErrorState v-else-if="error" title="Couldn't load items" :message="error" @retry="reload(true)" />
 
       <!-- Empty state -->
-      <div
+      <EmptyState
         v-else-if="!loading && items.length === 0"
-        class="flex flex-col items-center justify-center py-20 text-center"
+        title="No items found"
+        subtitle="Try adjusting your search or filters"
+        :show-clear="!!(search || activeGroup || activeBrand)"
+        @clear="clearFilters"
       >
-        <div class="w-16 h-16 rounded-2xl bg-surface flex items-center justify-center mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-muted/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-          </svg>
-        </div>
-        <p class="text-gray-700 font-semibold">No items found</p>
-        <p class="text-muted text-sm mt-1">Try adjusting your search or filters</p>
-        <button
-          v-if="search || activeGroup || activeBrand"
-          class="mt-4 px-5 py-2 bg-primary text-white rounded-xl text-sm font-semibold"
-          @click="clearFilters"
-        >Clear filters</button>
-      </div>
+        <template #icon><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></template>
+      </EmptyState>
 
       <!-- ── List view ──────────────────────────────────────────────────── -->
       <div v-else-if="viewMode === 'list'" class="space-y-2">
@@ -180,20 +127,6 @@
           class="w-full bg-white rounded-2xl px-4 py-3 border border-muted/20 shadow-sm flex items-center gap-3 text-left active:scale-[.98] transition-transform"
           @click="openItem(item)"
         >
-          <!-- Thumbnail -->
-          <div class="w-12 h-12 rounded-xl bg-surface border border-muted/20 flex items-center justify-center shrink-0 overflow-hidden">
-            <img
-              v-if="item.image"
-              :src="item.image"
-              :alt="item.item_name"
-              class="w-full h-full object-cover"
-              loading="lazy"
-            />
-            <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-muted/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-            </svg>
-          </div>
-
           <div class="flex-1 min-w-0">
             <p class="text-sm font-semibold text-gray-900 truncate leading-tight">{{ item.item_name }}</p>
             <p class="text-[11px] text-muted mt-0.5 truncate">{{ item.item_code }}</p>
@@ -205,7 +138,7 @@
 
           <div class="text-right shrink-0 ml-1">
             <p class="text-sm font-bold text-gray-900">
-              {{ item.standard_rate ? fmt(item.standard_rate) : '—' }}
+              {{ displayPrice(item) }}
             </p>
             <p class="text-[10px] text-muted mt-0.5">/ {{ item.stock_uom }}</p>
           </div>
@@ -224,20 +157,6 @@
           class="bg-white rounded-2xl border border-muted/20 shadow-sm overflow-hidden text-left active:scale-[.97] transition-transform flex flex-col"
           @click="openItem(item)"
         >
-          <!-- Image -->
-          <div class="aspect-square bg-surface flex items-center justify-center overflow-hidden">
-            <img
-              v-if="item.image"
-              :src="item.image"
-              :alt="item.item_name"
-              class="w-full h-full object-cover"
-              loading="lazy"
-            />
-            <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-gray-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-            </svg>
-          </div>
-
           <!-- Info -->
           <div class="p-3 flex flex-col gap-1 flex-1">
             <p class="text-xs font-semibold text-gray-900 leading-snug line-clamp-2">{{ item.item_name }}</p>
@@ -245,7 +164,7 @@
             <div class="mt-auto pt-2 flex items-end justify-between">
               <div>
                 <p class="text-sm font-bold text-primary">
-                  {{ item.standard_rate ? fmt(item.standard_rate) : '—' }}
+                  {{ displayPrice(item) }}
                 </p>
                 <p class="text-[9px] text-muted">/ {{ item.stock_uom }}</p>
               </div>
@@ -273,18 +192,57 @@
         — {{ items.length }} items shown —
       </p>
     </div>
+
+    <!-- ── FAB — New Item ──────────────────────────────────────────────────── -->
+    <FloatingActionButton @click="router.push({ name: 'ItemNew' })" />
   </div>
 </template>
 
 <script setup>
-import { ref, inject, onMounted, onUnmounted } from 'vue'
+import { ref, inject, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useItemStore } from '@/stores/items'
+import { useDefaultsStore } from '@/stores/defaults'
 import { usePullToRefresh } from '@/composables/usePullToRefresh'
+import { useFormatters } from '@/composables/useFormatters'
+import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
+import { api } from '@/composables/useApi'
+import SearchBar from '@/components/shared/SearchBar.vue'
+import ErrorState from '@/components/shared/ErrorState.vue'
+import EmptyState from '@/components/shared/EmptyState.vue'
+import PullToRefreshIndicator from '@/components/shared/PullToRefreshIndicator.vue'
+import FloatingActionButton from '@/components/shared/FloatingActionButton.vue'
 
-const router    = useRouter()
-const itemStore = useItemStore()
-const scrollEl  = inject('scrollEl') // provided by AppShell
+const router       = useRouter()
+const itemStore    = useItemStore()
+const defaultsStore = useDefaultsStore()
+const scrollEl     = inject('scrollEl') // provided by AppShell
+const { fmt } = useFormatters()
+
+// ── Price map (Item Price per item_code) ──────────────────────────────────────
+const priceMap = ref({})   // item_code → price_list_rate
+
+async function fetchPrices(list) {
+  const codes = list.map(i => i.item_code).filter(c => !(c in priceMap.value))
+  if (!codes.length || !defaultsStore.sellingPriceList) return
+  try {
+    const res = await api.getList('Item Price', {
+      fields:  ['item_code', 'price_list_rate'],
+      filters: [
+        ['price_list', '=',  defaultsStore.sellingPriceList],
+        ['item_code',  'in', codes],
+        ['selling',    '=',  1],
+      ],
+      limit: codes.length + 10,
+    })
+    ;(res?.data ?? res ?? []).forEach(p => { priceMap.value[p.item_code] = p.price_list_rate })
+  } catch { /* silently fall back to standard_rate */ }
+}
+
+function displayPrice(item) {
+  const rate = priceMap.value[item.item_code] ?? item.standard_rate
+  return rate ? fmt(rate) : '—'
+}
 
 // ── Display state ─────────────────────────────────────────────────────────────
 const viewMode    = ref('list')
@@ -303,17 +261,10 @@ const totalLoaded = ref(0)
 const { pullRatio, refreshing } = usePullToRefresh(scrollEl, () => reload(true))
 
 // ── Infinite scroll ───────────────────────────────────────────────────────────
-const sentinel = ref(null)
-let observer   = null
-
-onMounted(() => {
-  observer = new IntersectionObserver(
-    ([entry]) => { if (entry.isIntersecting && hasMore.value && !loading.value) loadMore() },
-    { rootMargin: '150px' },
-  )
-  if (sentinel.value) observer.observe(sentinel.value)
-})
-onUnmounted(() => observer?.disconnect())
+const { sentinel } = useInfiniteScroll(
+  () => hasMore.value && !loading.value,
+  loadMore,
+)
 
 // ── Data loading ──────────────────────────────────────────────────────────────
 async function reload(force = false) {
@@ -334,6 +285,7 @@ async function reload(force = false) {
     hasMore.value      = res.hasMore
     nextStart.value    = items.value.length
     totalLoaded.value  = items.value.length
+    fetchPrices(items.value)
   } catch (e) {
     console.error('[Items] reload failed', e)
     error.value = e?.message ?? 'Failed to load items'
@@ -352,10 +304,12 @@ async function loadMore() {
       brand:  activeBrand.value,
       start:  nextStart.value,
     })
-    items.value      = [...items.value, ...(res.data ?? [])]
+    const newItems = res.data ?? []
+    items.value      = [...items.value, ...newItems]
     hasMore.value     = res.hasMore
     nextStart.value   = items.value.length
     totalLoaded.value = items.value.length
+    fetchPrices(newItems)
   } catch (e) {
     console.error('[Items] loadMore failed', e)
   } finally {
@@ -376,11 +330,9 @@ function clearSearch() { search.value = ''; reload() }
 function clearFilters() { search.value = ''; activeGroup.value = ''; activeBrand.value = ''; reload() }
 function openItem(item) { router.push({ name: 'ItemDetail', params: { itemCode: item.name } }) }
 
-const _fmtNum = new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-function fmt(v) { return _fmtNum.format(v) }
-
 // ── Boot ──────────────────────────────────────────────────────────────────────
 onMounted(async () => {
+  await defaultsStore.fetchDefaults()
   itemStore.fetchFilterOptions().catch(() => {})
   await reload()
 })

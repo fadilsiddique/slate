@@ -105,6 +105,23 @@
           </svg>
         </button>
 
+        <!-- Delivery Notes -->
+        <button
+          class="w-full flex items-center gap-3 px-5 py-3 min-h-[44px] active:bg-surface transition-colors"
+          @click="navigateFromMore('/delivery-notes')"
+        >
+          <div class="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+              <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+            </svg>
+          </div>
+          <span class="text-sm font-medium text-gray-800">Delivery Notes</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-muted ml-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+
         <!-- Profile -->
         <button
           class="w-full flex items-center gap-3 px-5 py-3 min-h-[44px] active:bg-surface transition-colors"
@@ -162,13 +179,13 @@ const navItems = [
     icon:  '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>',
   },
   {
-    to:    '/delivery-notes',
-    label: 'Delivery',
-    icon:  '<rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>',
+    to:    '/invoices',
+    label: 'Invoices',
+    icon:  '<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>',
   },
 ]
 
-const moreRoutes = ['/customers', '/items', '/profile']
+const moreRoutes = ['/customers', '/items', '/delivery-notes', '/profile']
 
 function isActive(item) {
   if (item.to === '/') return route.path === '/'

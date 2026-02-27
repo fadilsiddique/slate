@@ -1,0 +1,1 @@
+import{j as a,c as e,t as s,n as l}from"./index.js";const c={__name:"StatusBadge",props:{label:{type:String,default:""},colorClass:{type:String,default:"bg-gray-100 text-gray-600"}},setup(t){return(r,n)=>(a(),e("span",{class:l(["shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold",t.colorClass])},s(t.label),3))}};export{c as _};

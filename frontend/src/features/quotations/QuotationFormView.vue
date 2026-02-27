@@ -43,36 +43,16 @@
           <label class="block text-xs font-semibold text-gray-600 mb-1.5">
             Customer <span class="text-red-400">*</span>
           </label>
-          <div class="relative">
-            <input
-              v-model="customerQuery"
-              type="text"
-              placeholder="Search customer…"
-              autocomplete="off"
-              class="w-full px-4 py-3 text-sm bg-white rounded-xl border transition focus:outline-none"
-              :class="submitted && v.customer
-                ? 'border-red-400 ring-1 ring-red-400'
-                : 'border-muted/40 focus:border-primary focus:ring-1 focus:ring-primary'"
-              @focus="onCustomerFocus"
-              @input="onCustomerInput"
-              @blur="hideCustomerResultsDelayed"
-            />
-            <!-- Dropdown -->
-            <ul
-              v-if="customerResults.length"
-              class="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-muted/30 rounded-xl shadow-lg max-h-48 overflow-y-auto"
-            >
-              <li
-                v-for="c in customerResults"
-                :key="c.name"
-                class="px-4 py-2.5 text-sm text-gray-800 hover:bg-surface cursor-pointer"
-                @mousedown.prevent="selectCustomer(c)"
-              >
-                {{ c.customer_name }}
-                <span v-if="c.customer_name !== c.name" class="text-xs text-muted ml-1">({{ c.name }})</span>
-              </li>
-            </ul>
-          </div>
+          <AutocompleteInput
+            v-model="customerQuery"
+            :results="normalizedCustomerResults"
+            :error="submitted && v.customer"
+            placeholder="Search customer…"
+            @input="onCustomerInput"
+            @focus="onCustomerFocus"
+            @blur="hideCustomerResultsDelayed"
+            @select="selectCustomer"
+          />
           <p v-if="submitted && v.customer" class="mt-1 text-xs text-red-500">
             Customer is required
           </p>
@@ -183,7 +163,7 @@
                 <div class="shrink-0 text-right">
                   <label class="block text-[10px] text-muted mb-1">Amount</label>
                   <p class="text-sm font-semibold text-gray-800 py-2">
-                    {{ fmtShort(rowAmount(row)) }}
+                    {{ fmt(rowAmount(row)) }}
                   </p>
                 </div>
                 <button
@@ -238,7 +218,7 @@
         <div v-if="taxRates.length" class="bg-white rounded-2xl border border-muted/20 px-4 py-3 space-y-1.5">
           <div v-for="(t, i) in taxRates" :key="i" class="flex justify-between text-sm text-gray-600">
             <span class="truncate pr-2">{{ t.description || t.account_head }} ({{ t.rate }}%)</span>
-            <span class="shrink-0 text-gray-800">{{ defaultsStore.currency || 'AED' }} {{ fmtShort(netTotal * (t.rate / 100)) }}</span>
+            <span class="shrink-0 text-gray-800">{{ defaultsStore.currency || 'AED' }} {{ fmt(netTotal * (t.rate / 100)) }}</span>
           </div>
         </div>
 
@@ -262,13 +242,8 @@
             </svg>
           </button>
           <div v-if="showNotes" class="px-4 pb-4 pt-2 bg-white border-t border-muted/20">
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Terms &amp; Conditions</label>
-            <textarea
-              v-model="terms"
-              rows="4"
-              placeholder="Terms and conditions…"
-              class="w-full px-4 py-3 text-sm bg-surface rounded-xl border border-muted/40 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition resize-none"
-            />
+            <label class="block text-xs font-semibold text-gray-600 mb-2">Terms &amp; Conditions</label>
+            <TermsSelect v-model="terms" />
           </div>
         </div>
 
@@ -276,25 +251,22 @@
         <div class="bg-white rounded-2xl border border-muted/20 px-4 py-3 space-y-2">
           <div class="flex justify-between text-sm text-gray-600">
             <span>Net Total</span>
-            <span>{{ defaultsStore.currency || 'AED' }} {{ fmtShort(netTotal) }}</span>
+            <span>{{ defaultsStore.currency || 'AED' }} {{ fmt(netTotal) }}</span>
           </div>
           <div v-if="taxTotal > 0" class="flex justify-between text-sm text-gray-600">
             <span>Tax</span>
-            <span>{{ defaultsStore.currency || 'AED' }} {{ fmtShort(taxTotal) }}</span>
+            <span>{{ defaultsStore.currency || 'AED' }} {{ fmt(taxTotal) }}</span>
           </div>
           <div class="flex justify-between text-base font-bold text-gray-900 pt-2 border-t border-muted/20">
             <span>Grand Total</span>
-            <span>{{ defaultsStore.currency || 'AED' }} {{ fmtShort(grandTotal) }}</span>
+            <span>{{ defaultsStore.currency || 'AED' }} {{ fmt(grandTotal) }}</span>
           </div>
         </div>
 
       </div>
 
       <!-- ── Sticky footer ──────────────────────────────────────────────────── -->
-      <div
-        class="fixed bottom-16 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-t border-muted/20 px-4 py-3 shadow-lg"
-        style="max-width: 480px; margin-inline: auto;"
-      >
+      <ActionFooter>
         <!-- Single save button — new mode saves as draft, edit mode saves changes -->
         <button
           type="button"
@@ -309,7 +281,7 @@
           </svg>
           {{ saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Save Draft' }}
         </button>
-      </div>
+      </ActionFooter>
 
     </template>
   </div>
@@ -321,11 +293,16 @@ import { useRoute, useRouter } from 'vue-router'
 import { useQuotationStore } from '@/stores/quotations'
 import { useDefaultsStore } from '@/stores/defaults'
 import { api } from '@/composables/useApi'
+import { useFormatters } from '@/composables/useFormatters'
+import ActionFooter from '@/components/shared/ActionFooter.vue'
+import TermsSelect from '@/components/shared/TermsSelect.vue'
+import AutocompleteInput from '@/components/shared/AutocompleteInput.vue'
 
 const route          = useRoute()
 const router         = useRouter()
 const quotationStore = useQuotationStore()
 const defaultsStore  = useDefaultsStore()
+const { fmt } = useFormatters()
 
 // ── Mode detection ────────────────────────────────────────────────────────────
 const isEdit        = route.name === 'QuotationEdit'
@@ -433,10 +410,18 @@ function onCustomerFocus() {
   _doCustomerSearch(customerQuery.value)
 }
 
-function selectCustomer(c) {
-  customerId.value      = c.name
-  customerLabel.value   = c.customer_name
-  customerQuery.value   = c.customer_name
+const normalizedCustomerResults = computed(() =>
+  customerResults.value.map(c => ({
+    id:       c.name,
+    label:    c.customer_name,
+    sublabel: c.customer_name !== c.name ? c.name : null,
+  }))
+)
+
+function selectCustomer(item) {
+  customerId.value      = item.id
+  customerLabel.value   = item.label
+  customerQuery.value   = item.label
   customerResults.value = []
 }
 
@@ -643,7 +628,4 @@ onMounted(async () => {
   }
 })
 
-// ── Formatters ────────────────────────────────────────────────────────────────
-const _fmt = new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-function fmtShort(n) { return _fmt.format(n ?? 0) }
 </script>

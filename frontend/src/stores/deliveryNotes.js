@@ -48,8 +48,8 @@ export const useDeliveryNoteStore = defineStore('deliveryNotes', () => {
    *
    * @param {{ search?: string, status?: string, start?: number }} opts
    */
-  async function fetchDeliveryNotes({ search = '', status = '', start = 0 } = {}) {
-    const key = `${search.trim().toLowerCase()}|${status}`
+  async function fetchDeliveryNotes({ search = '', status = '', sortBy = 'creation', dateFrom = '', dateTo = '', start = 0 } = {}) {
+    const key = `${search.trim().toLowerCase()}|${status}|${sortBy}|${dateFrom}|${dateTo}`
 
     if (start === 0) {
       const hit = _listCache.get(key)
@@ -58,6 +58,8 @@ export const useDeliveryNoteStore = defineStore('deliveryNotes', () => {
 
     const filters = []
     if (search.trim()) filters.push(['customer_name', 'like', `%${search.trim()}%`])
+    if (dateFrom)      filters.push(['posting_date', '>=', dateFrom])
+    if (dateTo)        filters.push(['posting_date', '<=', dateTo])
 
     // Map status tab → docstatus/status field filters
     if (status === 'Draft')         filters.push(['docstatus', '=', 0])
@@ -70,7 +72,7 @@ export const useDeliveryNoteStore = defineStore('deliveryNotes', () => {
       filters,
       limit: PAGE_SIZE,
       start,
-      orderBy: 'creation desc',
+      orderBy: sortBy === 'modified' ? 'modified desc' : 'creation desc',
     })
 
     const data    = result?.data ?? result ?? []
@@ -132,7 +134,8 @@ export const useDeliveryNoteStore = defineStore('deliveryNotes', () => {
 
   // ── Create Sales Invoice ──────────────────────────────────────────────────────
   /**
-   * Map a submitted Delivery Note to a Sales Invoice draft and save it.
+   * Map a submitted Delivery Note to a Sales Invoice doc (unsaved).
+   * Caller sets prefill on the invoice store and navigates to InvoiceNew.
    * @param {string} dnName
    */
   async function createSalesInvoice(dnName) {
@@ -140,10 +143,7 @@ export const useDeliveryNoteStore = defineStore('deliveryNotes', () => {
       'erpnext.stock.doctype.delivery_note.delivery_note.make_sales_invoice',
       { source_name: dnName },
     )
-    const result = await api.saveDoc('Sales Invoice', siDoc)
-    const saved  = result?.data ?? result
-    invalidate(dnName)
-    return saved
+    return siDoc?.data ?? siDoc
   }
 
   // ── Warehouse list ────────────────────────────────────────────────────────────

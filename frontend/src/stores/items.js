@@ -20,7 +20,7 @@ const DETAIL_TTL = 10 * 60 * 1000  // 10 min
 /** Fields to request for the list — keep tight to reduce payload. */
 export const ITEM_LIST_FIELDS = [
   'name', 'item_code', 'item_name', 'item_group', 'brand',
-  'image', 'standard_rate', 'stock_uom', 'has_variants',
+  'standard_rate', 'stock_uom', 'has_variants',
   'variant_of', 'is_stock_item', 'disabled',
 ]
 
@@ -190,6 +190,14 @@ export const useItemStore = defineStore('items', () => {
     }
   }
 
+  // ── Save ────────────────────────────────────────────────────────────────────
+  async function saveItem(doc) {
+    const result = await api.saveDoc('Item', doc)
+    const saved  = result?.data ?? result
+    invalidate(doc.item_code ?? null)
+    return saved
+  }
+
   return {
     itemGroups,
     brands,
@@ -197,6 +205,7 @@ export const useItemStore = defineStore('items', () => {
     fetchItems,
     fetchItemDetail,
     stockSummary,
+    saveItem,
     invalidate,
   }
 })
