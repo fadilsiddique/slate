@@ -1,4 +1,5 @@
 import { ref, onMounted } from 'vue'
+import { isSupported } from 'firebase/messaging'
 
 export function usePushNotifications() {
   const enabled   = ref(false)
@@ -7,7 +8,13 @@ export function usePushNotifications() {
   const error     = ref(null)
 
   onMounted(async () => {
-    supported.value = 'Notification' in window && 'serviceWorker' in navigator
+    // Use Firebase's own isSupported() — correctly returns false on Safari
+    // unless the PWA is installed to home screen (iOS 16.4+).
+    try {
+      supported.value = await isSupported()
+    } catch {
+      supported.value = false
+    }
     if (!supported.value) return
     const pn = window.frappePushNotification
     if (pn) enabled.value = pn.isNotificationEnabled()
