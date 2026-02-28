@@ -30,6 +30,14 @@ def are_push_notifications_enabled():
 		return False
 
 
+def add_push_relay_to_boot(bootinfo):
+	"""extend_bootinfo hook: copy push_relay_server_url from site config into
+	window.frappe.boot so the FrappePushNotification JS client can reach the relay."""
+	url = frappe.conf.get("push_relay_server_url")
+	if url:
+		bootinfo.push_relay_server_url = url
+
+
 def send_push_for_notification_log(doc, method):
 	"""Hook: Notification Log.after_insert → send FCM push to the recipient."""
 	try:
