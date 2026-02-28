@@ -24,6 +24,28 @@ app.mount('#app')
 async function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return
 
+  // The Slate PWA is a standalone SPA — window.frappe is never loaded by
+  // the Frappe desk boot session. FrappePushNotification reads the relay URL
+  // from window.frappe.boot.push_relay_server_url, so we fetch it from our
+  // own backend and populate that path before instantiating the class.
+  try {
+    const resp = await fetch('/api/method/slate.api.notifications.get_push_config', {
+      credentials: 'same-origin',
+      headers: { 'X-Frappe-CSRF-Token': 'fetch' },
+    })
+    if (resp.ok) {
+      const json = await resp.json()
+      const relayUrl = json?.message?.push_relay_server_url
+      if (relayUrl) {
+        window.frappe = window.frappe || {}
+        window.frappe.boot = window.frappe.boot || {}
+        window.frappe.boot.push_relay_server_url = relayUrl
+      }
+    }
+  } catch {
+    // Not logged in yet or endpoint unavailable — push init will be skipped
+  }
+
   window.frappePushNotification = new FrappePushNotification('slate')
 
   // Determine the correct SW URL (production vs dev)
