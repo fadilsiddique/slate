@@ -38,6 +38,16 @@ def add_push_relay_to_boot(bootinfo):
 		bootinfo.push_relay_server_url = url
 
 
+@frappe.whitelist()
+def get_push_config():
+	"""Return the push relay server URL for the Slate PWA.
+	Called by main.js on startup to bootstrap window.frappe.boot.push_relay_server_url,
+	since the Slate SPA does not load the standard Frappe boot session."""
+	return {
+		"push_relay_server_url": frappe.conf.get("push_relay_server_url") or "",
+	}
+
+
 def send_push_for_notification_log(doc, method):
 	"""Hook: Notification Log.after_insert → send FCM push to the recipient."""
 	try:
