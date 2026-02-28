@@ -17,6 +17,10 @@ doc_events = {
     }
 }
 
+# Expose push_relay_server_url to window.frappe.boot so the client-side
+# FrappePushNotification class can reach the relay server.
+extend_bootinfo = "slate.api.notifications.add_push_relay_to_boot"
+
 # Apps
 # ------------------
 
