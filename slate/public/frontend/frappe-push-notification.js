@@ -42,27 +42,39 @@ class FrappePushNotification {
 		if (this.webConfig !== null && this.webConfig !== undefined) {
 			return this.webConfig
 		}
+		const relayBase = FrappePushNotification.relayServerBaseURL
+		if (!relayBase) throw new Error("push_relay_server_url is not set — check site_config.json")
+		const url = `${relayBase}/api/method/notification_relay.api.get_config?project_name=${this.projectName}`
+		let response
 		try {
-			const url = `${FrappePushNotification.relayServerBaseURL}/api/method/notification_relay.api.get_config?project_name=${this.projectName}`
-			const response = await fetch(url)
-			const json = await response.json()
-			this.webConfig = json.config
-			return this.webConfig
+			response = await fetch(url)
 		} catch (e) {
-			throw new Error("Push Notification Relay is not configured properly on your site.")
+			throw new Error(`Cannot reach relay at ${relayBase}: ${e.message}`)
 		}
+		if (!response.ok) {
+			const text = await response.text().catch(() => "")
+			throw new Error(`Relay returned ${response.status} for project '${this.projectName}': ${text.slice(0, 200)}`)
+		}
+		const json = await response.json()
+		if (!json.config) {
+			throw new Error(`Relay has no Firebase config for project '${this.projectName}'. Check if the project is registered on the relay.`)
+		}
+		this.webConfig = json.config
+		return this.webConfig
 	}
 
 	async fetchVapidPublicKey() {
 		if (this.vapidPublicKey !== "") return this.vapidPublicKey
+		const relayBase = FrappePushNotification.relayServerBaseURL
+		if (!relayBase) throw new Error("push_relay_server_url is not set")
+		const url = `${relayBase}/api/method/notification_relay.api.get_config?project_name=${this.projectName}`
 		try {
-			const url = `${FrappePushNotification.relayServerBaseURL}/api/method/notification_relay.api.get_config?project_name=${this.projectName}`
 			const response = await fetch(url)
 			const json = await response.json()
 			this.vapidPublicKey = json.vapid_public_key
 			return this.vapidPublicKey
 		} catch (e) {
-			throw new Error("Push Notification Relay is not configured properly on your site.")
+			throw new Error(`Failed to fetch VAPID key: ${e.message}`)
 		}
 	}
 
