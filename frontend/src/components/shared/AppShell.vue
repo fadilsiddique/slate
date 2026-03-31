@@ -52,7 +52,7 @@
     </Transition>
 
     <!-- ── Scrollable content ────────────────────────────────────────────── -->
-    <main ref="mainRef" class="flex-1 overflow-y-auto overscroll-contain" style="padding-bottom: 4rem">
+    <main ref="mainRef" class="flex-1 overflow-y-auto overscroll-contain" style="padding-bottom: calc(4rem + env(safe-area-inset-bottom))">
       <router-view v-slot="{ Component, route }">
         <Transition :name="route.meta.transition ?? 'fade'" mode="out-in">
           <component :is="Component" :key="route.path" />

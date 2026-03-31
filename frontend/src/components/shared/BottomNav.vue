@@ -1,7 +1,7 @@
 <template>
   <nav
-    class="bg-white border-t border-muted/30 flex items-stretch h-16"
-    style="padding-bottom: env(safe-area-inset-bottom)"
+    class="bg-white border-t border-muted/30 flex items-stretch"
+    style="padding-bottom: env(safe-area-inset-bottom); min-height: 4rem;"
   >
     <!-- Direct-navigation tabs -->
     <button
