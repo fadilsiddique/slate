@@ -78,14 +78,14 @@
     </div>
 
     <!-- ─────────────────────────────────────────────────────────────────── -->
-    <!-- STAT CHIPS — 4-column, equal width, 8 px gap                       -->
+    <!-- STAT CHIPS — 3-column, equal width, 8 px gap                       -->
     <!-- ─────────────────────────────────────────────────────────────────── -->
-    <div class="grid grid-cols-4 gap-2 px-4 mt-6">
+    <div class="grid grid-cols-3 gap-2 px-4 mt-6">
 
       <!-- Loading skeleton -->
       <template v-if="loading && !firstLoaded">
         <div
-          v-for="n in 4" :key="n"
+          v-for="n in 3" :key="n"
           class="bg-white rounded-2xl border border-muted/15 animate-pulse"
           style="height: 92px"
         />
@@ -93,49 +93,35 @@
 
       <template v-else>
 
-        <!-- Quotes Today -->
+        <!-- Sales Invoices Today -->
         <button
           class="flex flex-col bg-white rounded-2xl border border-muted/15 p-3 text-left min-h-[44px] active:scale-[.97] transition-transform"
-          @click="router.push({ name: 'Quotations' })"
+          @click="router.push({ name: 'Invoices' })"
         >
-          <div class="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16l3-2 2 2 2-2 2 2 3-2V4a2 2 0 0 0-2-2z"/><line x1="16" y1="8" x2="8" y2="8"/><line x1="16" y1="12" x2="8" y2="12"/>
             </svg>
           </div>
-          <p class="text-[22px] font-bold text-primary leading-none tabular-nums">{{ stats.todayQCount }}</p>
-          <p class="text-[8.5px] font-medium text-muted/55 mt-1.5 leading-tight">Quotes Today</p>
+          <p class="text-[22px] font-bold text-indigo-600 leading-none tabular-nums">{{ compactNum(stats.todaySIValue) }}</p>
+          <p class="text-[8.5px] font-medium text-muted/55 mt-1.5 leading-tight">Sales Today</p>
         </button>
 
-        <!-- Open Orders -->
+        <!-- Purchases Today -->
         <button
           class="flex flex-col bg-white rounded-2xl border border-muted/15 p-3 text-left min-h-[44px] active:scale-[.97] transition-transform"
-          @click="router.push({ name: 'Orders' })"
+          @click="router.push({ name: 'PurchaseInvoices' })"
         >
           <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center mb-3">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
             </svg>
           </div>
-          <p class="text-[22px] font-bold text-amber-600 leading-none tabular-nums">{{ stats.openSOCount }}</p>
-          <p class="text-[8.5px] font-medium text-muted/55 mt-1.5 leading-tight">Open Orders</p>
+          <p class="text-[22px] font-bold text-amber-600 leading-none tabular-nums">{{ compactNum(stats.todayPurchases) }}</p>
+          <p class="text-[8.5px] font-medium text-muted/55 mt-1.5 leading-tight">Purchases Today</p>
         </button>
 
-        <!-- Pending Deliveries -->
-        <button
-          class="flex flex-col bg-white rounded-2xl border border-muted/15 p-3 text-left min-h-[44px] active:scale-[.97] transition-transform"
-          @click="router.push({ name: 'DeliveryNotes' })"
-        >
-          <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
-            </svg>
-          </div>
-          <p class="text-[22px] font-bold text-blue-600 leading-none tabular-nums">{{ stats.pendingDNs }}</p>
-          <p class="text-[8.5px] font-medium text-muted/55 mt-1.5 leading-tight">Pending Del.</p>
-        </button>
-
-        <!-- Monthly Revenue -->
+        <!-- Sales This Month -->
         <button
           class="flex flex-col bg-white rounded-2xl border border-muted/15 p-3 text-left min-h-[44px] active:scale-[.97] transition-transform"
           @click="router.push({ name: 'Invoices' })"
@@ -145,8 +131,8 @@
               <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
             </svg>
           </div>
-          <p class="text-[22px] font-bold text-green-600 leading-none tabular-nums">{{ compactNum(stats.monthlyRev) }}</p>
-          <p class="text-[8.5px] font-medium text-muted/55 mt-1.5 leading-tight">{{ defaultsStore.currency }} / Mo</p>
+          <p class="text-[22px] font-bold text-green-600 leading-none tabular-nums">{{ compactNum(stats.monthlySales) }}</p>
+          <p class="text-[8.5px] font-medium text-muted/55 mt-1.5 leading-tight">Sales / Month</p>
         </button>
 
       </template>
@@ -431,14 +417,12 @@ const firstLoaded = ref(false)
 const activity    = ref([])
 
 const stats = reactive({
-  todayQCount:  0,
-  todayQValue:  0,
-  openSOCount:  0,
-  openSOValue:  0,
-  pendingDNs:   0,
-  monthlyRev:   0,
-  overdueCount: 0,
-  overdueValue: 0,
+  todaySIValue:    0,
+  todayPurchases:  0,
+  monthlySales:    0,
+  pendingDNs:      0,
+  overdueCount:    0,
+  overdueValue:    0,
 })
 
 // ── Notification badge ────────────────────────────────────────────────────────
@@ -526,13 +510,13 @@ async function loadDashboard(force = false) {
     const today        = now.toISOString().slice(0, 10)
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
 
-    const [qToday, soOpen, dnPending, soMonth, actQ, actSO, actDN, actSI, overdueInv] =
+    const [siToday, piToday, siMonth, dnPending, actQ, actSO, actDN, actSI, overdueInv] =
       await Promise.allSettled([
         // Stat queries
-        api.getList('Quotation',     { fields: ['name', 'grand_total'], filters: [['transaction_date', '=', today], ['docstatus', '!=', 2]], limit: 500 }),
-        api.getList('Sales Order',   { fields: ['name', 'grand_total'], filters: [['docstatus', '=', 1], ['status', 'in', ['To Deliver and Bill', 'To Bill', 'To Deliver']]], limit: 500 }),
-        api.getList('Delivery Note', { fields: ['name'],               filters: [['docstatus', '=', 1], ['status', '=', 'To Bill']], limit: 999 }),
-        api.getList('Sales Order',   { fields: ['name', 'grand_total'], filters: [['transaction_date', 'between', [firstOfMonth, today]], ['docstatus', '=', 1]], limit: 500 }),
+        api.getList('Sales Invoice',    { fields: ['name', 'grand_total'], filters: [['posting_date', '=', today], ['docstatus', '!=', 2]], limit: 500 }),
+        api.getList('Purchase Invoice', { fields: ['name', 'grand_total'], filters: [['posting_date', '=', today], ['docstatus', '!=', 2]], limit: 500 }),
+        api.getList('Sales Invoice',    { fields: ['name', 'grand_total'], filters: [['posting_date', 'between', [firstOfMonth, today]], ['docstatus', '!=', 2]], limit: 500 }),
+        api.getList('Delivery Note',    { fields: ['name'],               filters: [['docstatus', '=', 1], ['status', '=', 'To Bill']], limit: 999 }),
         // Activity queries (4 each, merged + sorted to 10)
         api.getList('Quotation',     { fields: ACT_FIELDS,    limit: 4, orderBy: 'modified desc' }),
         api.getList('Sales Order',   { fields: ACT_FIELDS,    limit: 4, orderBy: 'modified desc' }),
@@ -543,20 +527,18 @@ async function loadDashboard(force = false) {
       ])
 
     // Stats
-    const qT  = unwrap(qToday)
-    const soO = unwrap(soOpen)
+    const siT = unwrap(siToday)
+    const piT = unwrap(piToday)
+    const siM = unwrap(siMonth)
     const dnP = unwrap(dnPending)
-    const soM = unwrap(soMonth)
     const ovr = unwrap(overdueInv)
 
-    stats.todayQCount  = qT.length
-    stats.todayQValue  = qT.reduce((s, r) => s + (r.grand_total || 0), 0)
-    stats.openSOCount  = soO.length
-    stats.openSOValue  = soO.reduce((s, r) => s + (r.grand_total || 0), 0)
-    stats.pendingDNs   = dnP.length
-    stats.monthlyRev   = soM.reduce((s, r) => s + (r.grand_total || 0), 0)
-    stats.overdueCount = ovr.length
-    stats.overdueValue = ovr.reduce((s, r) => s + (r.outstanding_amount || 0), 0)
+    stats.todaySIValue   = siT.reduce((s, r) => s + (r.grand_total || 0), 0)
+    stats.todayPurchases = piT.reduce((s, r) => s + (r.grand_total || 0), 0)
+    stats.monthlySales   = siM.reduce((s, r) => s + (r.grand_total || 0), 0)
+    stats.pendingDNs     = dnP.length
+    stats.overdueCount   = ovr.length
+    stats.overdueValue   = ovr.reduce((s, r) => s + (r.outstanding_amount || 0), 0)
 
     // Activity — merge 4 types, sort by modified, keep top 10
     activity.value = [
