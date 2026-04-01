@@ -4,8 +4,9 @@ import frappe
 @frappe.whitelist()
 def get_gross_profit(from_date, to_date):
 	"""
-	Returns gross profit for submitted Sales Invoices in the given date range.
+	Returns gross profit for draft + submitted Sales Invoices in the given date range.
 	Gross profit = SUM((selling_rate - incoming_rate) * qty) across all line items.
+	incoming_rate is pre-filled from item valuation even on drafts.
 	Items with incoming_rate = 0 (services / zero-valuation) contribute full revenue.
 	"""
 	result = frappe.db.sql(
@@ -15,7 +16,7 @@ def get_gross_profit(from_date, to_date):
 			COALESCE(SUM(sii.rate * sii.qty), 0)                       AS total_revenue
 		FROM `tabSales Invoice Item` sii
 		INNER JOIN `tabSales Invoice` si ON si.name = sii.parent
-		WHERE si.docstatus = 1
+		WHERE si.docstatus IN (0, 1)
 		  AND si.posting_date BETWEEN %(from_date)s AND %(to_date)s
 		  AND si.is_return = 0
 		""",
