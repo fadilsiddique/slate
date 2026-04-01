@@ -672,10 +672,8 @@ function fmtHeroDate() {
 
 // Compact number for stat chips and activity amounts
 function compactNum(n) {
-  const v = Math.abs(n ?? 0)
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`
-  if (v >= 1_000)     return `${Math.round(v / 1_000)}K`
-  return String(Math.round(v))
+  const v = n ?? 0
+  return v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 // ── Mount ─────────────────────────────────────────────────────────────────────
