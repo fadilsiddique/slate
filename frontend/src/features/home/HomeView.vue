@@ -290,15 +290,17 @@
               <p class="text-sm font-semibold text-gray-900 leading-tight truncate">
                 {{ item.customer_name || '—' }}
               </p>
-              <!-- Secondary: type dot · doc id · time -->
-              <div class="flex items-center gap-1.5 mt-1">
-                <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="typeDotClass(item._type)" />
-                <span class="text-[10px] font-mono text-muted/70 truncate flex-1 min-w-0">{{ item.name }}</span>
-                <span class="text-[10px] text-muted/50 shrink-0">{{ relativeTime(item.modified) }}</span>
+              <!-- Secondary: doc-type pill · doc id -->
+              <div class="flex items-center gap-1.5 mt-1.5">
+                <span
+                  class="shrink-0 px-1.5 py-[2px] rounded-md text-[9px] font-bold leading-none"
+                  :class="typePillClass(item._type)"
+                >{{ typeShortLabel(item._type) }}</span>
+                <span class="text-[10px] font-mono text-muted/60 truncate min-w-0">{{ item.name }}</span>
               </div>
             </div>
 
-            <!-- Right column: amount + status badge -->
+            <!-- Right column: amount + status badge + time -->
             <div class="shrink-0 flex flex-col items-end gap-1.5 py-3">
               <p class="text-sm font-bold text-gray-800 tabular-nums leading-none">
                 {{ compactNum(item.grand_total) }}
@@ -307,6 +309,7 @@
                 class="px-1.5 py-[2px] rounded-full text-[8.5px] font-semibold leading-none"
                 :class="activityBadge(item)"
               >{{ activityLabel(item) }}</span>
+              <span class="text-[9px] text-muted/45 leading-none">{{ relativeTime(item.modified) }}</span>
             </div>
 
           </button>
@@ -580,13 +583,22 @@ function typeIconBg(type) {
   }[type] ?? 'bg-gray-100 text-gray-500'
 }
 
-function typeDotClass(type) {
+function typePillClass(type) {
   return {
-    Quotation:       'bg-primary',
-    'Sales Order':   'bg-amber-500',
-    'Delivery Note': 'bg-blue-500',
-    'Sales Invoice': 'bg-indigo-500',
-  }[type] ?? 'bg-gray-400'
+    Quotation:       'bg-primary/10 text-primary',
+    'Sales Order':   'bg-amber-50 text-amber-700',
+    'Delivery Note': 'bg-blue-50 text-blue-700',
+    'Sales Invoice': 'bg-indigo-50 text-indigo-700',
+  }[type] ?? 'bg-gray-100 text-gray-500'
+}
+
+function typeShortLabel(type) {
+  return {
+    Quotation:       'Quote',
+    'Sales Order':   'Order',
+    'Delivery Note': 'Delivery',
+    'Sales Invoice': 'Invoice',
+  }[type] ?? type
 }
 
 function activityLabel(item) {
