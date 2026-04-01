@@ -89,11 +89,12 @@
           class="bg-white rounded-2xl border border-muted/15 animate-pulse"
           style="height: 100px"
         />
+        <div class="col-span-2 bg-white rounded-2xl border border-muted/15 animate-pulse" style="height: 100px" />
       </template>
 
       <template v-else>
 
-        <!-- Sales Invoices Today -->
+        <!-- Sales Invoiced Today -->
         <button
           class="flex flex-col bg-white rounded-2xl border border-muted/15 p-4 text-left active:scale-[.97] transition-transform"
           @click="router.push({ name: 'Invoices' })"
@@ -108,6 +109,30 @@
           </div>
           <p class="text-[24px] font-bold text-indigo-600 leading-none tabular-nums">{{ compactNum(stats.todaySIValue) }}</p>
           <p class="text-[10px] font-medium text-muted/55 mt-1.5">Sales Invoiced</p>
+        </button>
+
+        <!-- Gross Profit Today -->
+        <button
+          class="flex flex-col bg-white rounded-2xl border border-muted/15 p-4 text-left active:scale-[.97] transition-transform"
+          @click="router.push({ name: 'Invoices' })"
+        >
+          <div class="flex items-center justify-between w-full mb-3">
+            <div class="w-8 h-8 rounded-xl bg-teal-50 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
+            <span class="text-[9px] font-semibold text-muted/40 uppercase tracking-wide">Today</span>
+          </div>
+          <p class="text-[24px] font-bold text-teal-600 leading-none tabular-nums">{{ compactNum(stats.todayGrossProfit) }}</p>
+          <div class="flex items-center justify-between mt-1.5">
+            <p class="text-[10px] font-medium text-muted/55">Gross Profit</p>
+            <span
+              v-if="stats.todayMarginPct > 0"
+              class="text-[9px] font-bold px-1.5 py-[2px] rounded-full"
+              :class="stats.todayMarginPct >= 30 ? 'bg-teal-50 text-teal-700' : stats.todayMarginPct >= 15 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'"
+            >{{ stats.todayMarginPct }}%</span>
+          </div>
         </button>
 
         <!-- Purchases Today -->
@@ -127,7 +152,7 @@
           <p class="text-[10px] font-medium text-muted/55 mt-1.5">Purchases</p>
         </button>
 
-        <!-- Sales This Month -->
+        <!-- Monthly Sales -->
         <button
           class="flex flex-col bg-white rounded-2xl border border-muted/15 p-4 text-left active:scale-[.97] transition-transform"
           @click="router.push({ name: 'Invoices' })"
@@ -146,7 +171,7 @@
 
         <!-- Gross Profit This Month -->
         <button
-          class="flex flex-col bg-white rounded-2xl border border-muted/15 p-4 text-left active:scale-[.97] transition-transform"
+          class="col-span-2 flex flex-col bg-white rounded-2xl border border-muted/15 p-4 text-left active:scale-[.97] transition-transform"
           @click="router.push({ name: 'Invoices' })"
         >
           <div class="flex items-center justify-between w-full mb-3">
@@ -157,14 +182,16 @@
             </div>
             <span class="text-[9px] font-semibold text-muted/40 uppercase tracking-wide">{{ monthName }}</span>
           </div>
-          <p class="text-[24px] font-bold text-teal-600 leading-none tabular-nums">{{ compactNum(stats.grossProfit) }}</p>
-          <div class="flex items-center justify-between mt-1.5">
-            <p class="text-[10px] font-medium text-muted/55">Gross Profit</p>
+          <div class="flex items-end justify-between gap-4">
+            <div>
+              <p class="text-[24px] font-bold text-teal-600 leading-none tabular-nums">{{ compactNum(stats.monthlyGrossProfit) }}</p>
+              <p class="text-[10px] font-medium text-muted/55 mt-1.5">Gross Profit</p>
+            </div>
             <span
-              v-if="stats.grossMarginPct > 0"
-              class="text-[9px] font-bold px-1.5 py-[2px] rounded-full"
-              :class="stats.grossMarginPct >= 30 ? 'bg-teal-50 text-teal-700' : stats.grossMarginPct >= 15 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'"
-            >{{ stats.grossMarginPct }}%</span>
+              v-if="stats.monthlyMarginPct > 0"
+              class="text-sm font-bold px-3 py-1.5 rounded-xl mb-0.5"
+              :class="stats.monthlyMarginPct >= 30 ? 'bg-teal-50 text-teal-700' : stats.monthlyMarginPct >= 15 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'"
+            >{{ stats.monthlyMarginPct }}% margin</span>
           </div>
         </button>
 
@@ -453,14 +480,16 @@ const firstLoaded = ref(false)
 const activity    = ref([])
 
 const stats = reactive({
-  todaySIValue:    0,
-  todayPurchases:  0,
-  monthlySales:    0,
-  grossProfit:     0,
-  grossMarginPct:  0,
-  pendingDNs:      0,
-  overdueCount:    0,
-  overdueValue:    0,
+  todaySIValue:        0,
+  todayPurchases:      0,
+  todayGrossProfit:    0,
+  todayMarginPct:      0,
+  monthlySales:        0,
+  monthlyGrossProfit:  0,
+  monthlyMarginPct:    0,
+  pendingDNs:          0,
+  overdueCount:        0,
+  overdueValue:        0,
 })
 
 // ── Notification badge ────────────────────────────────────────────────────────
@@ -552,7 +581,7 @@ async function loadDashboard(force = false) {
     const today        = now.toISOString().slice(0, 10)
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
 
-    const [siToday, piToday, siMonth, dnPending, actQ, actSO, actDN, actSI, overdueInv, gpMonth] =
+    const [siToday, piToday, siMonth, dnPending, actQ, actSO, actDN, actSI, overdueInv, gpToday, gpMonth] =
       await Promise.allSettled([
         // Stat queries
         api.getList('Sales Invoice',    { fields: ['name', 'grand_total'], filters: [['posting_date', '=', today], ['docstatus', '!=', 2]], limit: 500 }),
@@ -566,26 +595,30 @@ async function loadDashboard(force = false) {
         api.getList('Sales Invoice', { fields: ACT_SI_FIELDS, limit: 4, orderBy: 'modified desc' }),
         // Priority: overdue invoices
         api.getList('Sales Invoice', { fields: ['name', 'outstanding_amount'], filters: [['docstatus', '=', 1], ['outstanding_amount', '>', 0], ['due_date', '<', today]], limit: 200 }),
-        // Gross profit this month (submitted invoices only)
+        // Gross profit — today and this month
+        api.call('slate.api.stats.get_gross_profit', { from_date: today,        to_date: today }),
         api.call('slate.api.stats.get_gross_profit', { from_date: firstOfMonth, to_date: today }),
       ])
 
     // Stats
-    const siT = unwrap(siToday)
-    const piT = unwrap(piToday)
-    const siM = unwrap(siMonth)
-    const dnP = unwrap(dnPending)
-    const ovr = unwrap(overdueInv)
-    const gp  = gpMonth.status === 'fulfilled' ? (gpMonth.value ?? {}) : {}
+    const siT  = unwrap(siToday)
+    const piT  = unwrap(piToday)
+    const siM  = unwrap(siMonth)
+    const dnP  = unwrap(dnPending)
+    const ovr  = unwrap(overdueInv)
+    const gpT  = gpToday.status === 'fulfilled' ? (gpToday.value ?? {}) : {}
+    const gpM  = gpMonth.status === 'fulfilled' ? (gpMonth.value ?? {}) : {}
 
-    stats.todaySIValue   = siT.reduce((s, r) => s + (r.grand_total || 0), 0)
-    stats.todayPurchases = piT.reduce((s, r) => s + (r.grand_total || 0), 0)
-    stats.monthlySales   = siM.reduce((s, r) => s + (r.grand_total || 0), 0)
-    stats.grossProfit    = gp.gross_profit  ?? 0
-    stats.grossMarginPct = gp.margin_pct    ?? 0
-    stats.pendingDNs     = dnP.length
-    stats.overdueCount   = ovr.length
-    stats.overdueValue   = ovr.reduce((s, r) => s + (r.outstanding_amount || 0), 0)
+    stats.todaySIValue       = siT.reduce((s, r) => s + (r.grand_total || 0), 0)
+    stats.todayPurchases     = piT.reduce((s, r) => s + (r.grand_total || 0), 0)
+    stats.todayGrossProfit   = gpT.gross_profit ?? 0
+    stats.todayMarginPct     = gpT.margin_pct   ?? 0
+    stats.monthlySales       = siM.reduce((s, r) => s + (r.grand_total || 0), 0)
+    stats.monthlyGrossProfit = gpM.gross_profit ?? 0
+    stats.monthlyMarginPct   = gpM.margin_pct   ?? 0
+    stats.pendingDNs         = dnP.length
+    stats.overdueCount       = ovr.length
+    stats.overdueValue       = ovr.reduce((s, r) => s + (r.outstanding_amount || 0), 0)
 
     // Activity — merge 4 types, sort by modified, keep top 10
     activity.value = [
