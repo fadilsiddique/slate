@@ -199,97 +199,6 @@
     </div>
 
     <!-- ─────────────────────────────────────────────────────────────────── -->
-    <!-- PRIORITY ACTIONS — modular, role-aware, collapsible-ready          -->
-    <!-- ─────────────────────────────────────────────────────────────────── -->
-    <div class="px-4 mt-6">
-
-      <!-- Section header -->
-      <div class="flex items-center gap-2 mb-3">
-        <h2 class="text-[11px] font-extrabold text-gray-800 uppercase tracking-[0.08em]">Priority</h2>
-        <span
-          v-if="hasPriority && firstLoaded"
-          class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-500 text-white text-[8px] font-bold leading-none"
-        >{{ priorityCount }}</span>
-      </div>
-
-      <!-- Priority card -->
-      <div class="bg-white rounded-2xl border border-muted/15 overflow-hidden divide-y divide-muted/10">
-
-        <!-- Skeleton -->
-        <template v-if="loading && !firstLoaded">
-          <div class="h-[64px] animate-pulse" />
-          <div class="h-[64px] animate-pulse opacity-60" />
-        </template>
-
-        <template v-else>
-
-          <!-- Overdue invoices -->
-          <button
-            v-if="stats.overdueCount > 0"
-            class="w-full flex items-center gap-3 px-4 min-h-[64px] text-left active:bg-surface/70 transition-colors"
-            @click="router.push({ name: 'Invoices' })"
-          >
-            <div class="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px] text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-            </div>
-            <div class="flex-1 min-w-0 py-4">
-              <p class="text-sm font-semibold text-gray-900 leading-tight">
-                {{ stats.overdueCount }} Overdue Invoice{{ stats.overdueCount !== 1 ? 's' : '' }}
-              </p>
-              <p class="text-xs text-muted mt-0.5">
-                {{ defaultsStore.currency }} {{ compactNum(stats.overdueValue) }} outstanding
-              </p>
-            </div>
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-muted/30 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
-          </button>
-
-          <!-- Delivery notes awaiting invoice -->
-          <button
-            v-if="stats.pendingDNs > 0"
-            class="w-full flex items-center gap-3 px-4 min-h-[64px] text-left active:bg-surface/70 transition-colors"
-            @click="router.push({ name: 'DeliveryNotes' })"
-          >
-            <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px] text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
-              </svg>
-            </div>
-            <div class="flex-1 min-w-0 py-4">
-              <p class="text-sm font-semibold text-gray-900 leading-tight">
-                {{ stats.pendingDNs }} {{ stats.pendingDNs !== 1 ? 'Deliveries' : 'Delivery' }} Awaiting Invoice
-              </p>
-              <p class="text-xs text-muted mt-0.5">Create invoices to complete billing</p>
-            </div>
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-muted/30 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
-          </button>
-
-          <!-- Empty — all caught up -->
-          <div
-            v-if="!hasPriority"
-            class="flex items-center gap-3 px-4 min-h-[64px]"
-          >
-            <div class="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px] text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-            </div>
-            <div>
-              <p class="text-sm font-semibold text-gray-700 leading-tight">All caught up</p>
-              <p class="text-xs text-muted mt-0.5">No items need immediate attention</p>
-            </div>
-          </div>
-
-        </template>
-      </div>
-    </div>
-
-    <!-- ─────────────────────────────────────────────────────────────────── -->
     <!-- WEEKLY SALES CHART                                                  -->
     <!-- ─────────────────────────────────────────────────────────────────── -->
     <div class="px-4 mt-6">
@@ -529,9 +438,6 @@ const stats = reactive({
   monthlySales:        0,
   monthlyGrossProfit:  0,
   monthlyMarginPct:    0,
-  pendingDNs:          0,
-  overdueCount:        0,
-  overdueValue:        0,
 })
 
 // ── Weekly chart ──────────────────────────────────────────────────────────────
@@ -607,16 +513,6 @@ const greeting = computed(() => {
   return 'evening'
 })
 
-// ── Priority computed ─────────────────────────────────────────────────────────
-const hasPriority = computed(() => stats.overdueCount > 0 || stats.pendingDNs > 0)
-
-const priorityCount = computed(() => {
-  let n = 0
-  if (stats.overdueCount > 0) n++
-  if (stats.pendingDNs > 0)   n++
-  return n
-})
-
 // ── Data fetching ─────────────────────────────────────────────────────────────
 const ACT_FIELDS    = ['name', 'customer_name', 'transaction_date', 'grand_total', 'modified', 'status', 'docstatus']
 const ACT_DN_FIELDS = ['name', 'customer_name', 'posting_date',    'grand_total', 'modified', 'status', 'docstatus']
@@ -637,20 +533,17 @@ async function loadDashboard(force = false) {
     const today        = now.toISOString().slice(0, 10)
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
 
-    const [siToday, piToday, siMonth, dnPending, actQ, actSO, actDN, actSI, overdueInv, gpToday, gpMonth, weeklySales] =
+    const [siToday, piToday, siMonth, actQ, actSO, actDN, actSI, gpToday, gpMonth, weeklySales] =
       await Promise.allSettled([
         // Stat queries
         api.getList('Sales Invoice',    { fields: ['name', 'grand_total'], filters: [['posting_date', '=', today], ['docstatus', '!=', 2]], limit: 500 }),
         api.getList('Purchase Invoice', { fields: ['name', 'grand_total'], filters: [['posting_date', '=', today], ['docstatus', '!=', 2]], limit: 500 }),
         api.getList('Sales Invoice',    { fields: ['name', 'grand_total'], filters: [['posting_date', 'between', [firstOfMonth, today]], ['docstatus', '!=', 2]], limit: 500 }),
-        api.getList('Delivery Note',    { fields: ['name'],               filters: [['docstatus', '=', 1], ['status', '=', 'To Bill']], limit: 999 }),
         // Activity queries (4 each, merged + sorted to 10)
         api.getList('Quotation',     { fields: ACT_FIELDS,    limit: 4, orderBy: 'modified desc' }),
         api.getList('Sales Order',   { fields: ACT_FIELDS,    limit: 4, orderBy: 'modified desc' }),
         api.getList('Delivery Note', { fields: ACT_DN_FIELDS, limit: 4, orderBy: 'modified desc' }),
         api.getList('Sales Invoice', { fields: ACT_SI_FIELDS, limit: 4, orderBy: 'modified desc' }),
-        // Priority: overdue invoices
-        api.getList('Sales Invoice', { fields: ['name', 'outstanding_amount'], filters: [['docstatus', '=', 1], ['outstanding_amount', '>', 0], ['due_date', '<', today]], limit: 200 }),
         // Gross profit — today and this month
         api.call('slate.api.stats.get_gross_profit', { from_date: today,        to_date: today }),
         api.call('slate.api.stats.get_gross_profit', { from_date: firstOfMonth, to_date: today }),
@@ -659,13 +552,11 @@ async function loadDashboard(force = false) {
       ])
 
     // Stats
-    const siT  = unwrap(siToday)
-    const piT  = unwrap(piToday)
-    const siM  = unwrap(siMonth)
-    const dnP  = unwrap(dnPending)
-    const ovr  = unwrap(overdueInv)
-    const gpT  = gpToday.status === 'fulfilled'   ? (gpToday.value   ?? {}) : {}
-    const gpM  = gpMonth.status === 'fulfilled'   ? (gpMonth.value   ?? {}) : {}
+    const siT = unwrap(siToday)
+    const piT = unwrap(piToday)
+    const siM = unwrap(siMonth)
+    const gpT = gpToday.status === 'fulfilled' ? (gpToday.value ?? {}) : {}
+    const gpM = gpMonth.status === 'fulfilled' ? (gpMonth.value ?? {}) : {}
     weeklyData.value = weeklySales.status === 'fulfilled' ? (weeklySales.value ?? []) : []
 
     stats.todaySIValue       = siT.reduce((s, r) => s + (r.grand_total || 0), 0)
@@ -675,9 +566,6 @@ async function loadDashboard(force = false) {
     stats.monthlySales       = siM.reduce((s, r) => s + (r.grand_total || 0), 0)
     stats.monthlyGrossProfit = gpM.gross_profit ?? 0
     stats.monthlyMarginPct   = gpM.margin_pct   ?? 0
-    stats.pendingDNs         = dnP.length
-    stats.overdueCount       = ovr.length
-    stats.overdueValue       = ovr.reduce((s, r) => s + (r.outstanding_amount || 0), 0)
 
     // Activity — merge 4 types, sort by modified, keep top 10
     activity.value = [
