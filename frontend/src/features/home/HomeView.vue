@@ -536,9 +536,9 @@ async function loadDashboard(force = false) {
     const [siToday, piToday, siMonth, actQ, actSO, actDN, actSI, gpToday, gpMonth, weeklySales] =
       await Promise.allSettled([
         // Stat queries
-        api.getList('Sales Invoice',    { fields: ['name', 'grand_total'], filters: [['posting_date', '=', today], ['docstatus', '!=', 2]], limit: 500 }),
-        api.getList('Purchase Invoice', { fields: ['name', 'grand_total'], filters: [['posting_date', '=', today], ['docstatus', '!=', 2]], limit: 500 }),
-        api.getList('Sales Invoice',    { fields: ['name', 'grand_total'], filters: [['posting_date', 'between', [firstOfMonth, today]], ['docstatus', '!=', 2]], limit: 500 }),
+        api.getList('Sales Invoice',    { fields: ['name', 'grand_total'], filters: [['posting_date', '=', today],                             ['docstatus', '=', 1], ['is_return', '=', 0]], limit: 500 }),
+        api.getList('Purchase Invoice', { fields: ['name', 'grand_total'], filters: [['posting_date', '=', today],                             ['docstatus', '=', 1]], limit: 500 }),
+        api.getList('Sales Invoice',    { fields: ['name', 'grand_total'], filters: [['posting_date', 'between', [firstOfMonth, today]], ['docstatus', '=', 1], ['is_return', '=', 0]], limit: 500 }),
         // Activity queries (4 each, merged + sorted to 10)
         api.getList('Quotation',     { fields: ACT_FIELDS,    limit: 4, orderBy: 'modified desc' }),
         api.getList('Sales Order',   { fields: ACT_FIELDS,    limit: 4, orderBy: 'modified desc' }),
