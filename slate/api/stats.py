@@ -1,4 +1,5 @@
 import frappe
+from datetime import date, timedelta
 
 
 @frappe.whitelist()
@@ -33,3 +34,37 @@ def get_gross_profit(from_date, to_date):
 		"gross_profit": gross_profit,
 		"margin_pct":   margin_pct,
 	}
+
+
+@frappe.whitelist()
+def get_weekly_sales():
+	"""
+	Returns daily sales totals (draft + submitted) for Mon–Sun of the current week.
+	Always returns 7 entries, one per day, with 0 for days with no invoices.
+	"""
+	today = date.today()
+	# Monday of current week
+	monday = today - timedelta(days=today.weekday())
+
+	rows = frappe.db.sql(
+		"""
+		SELECT posting_date, COALESCE(SUM(grand_total), 0) AS daily_total
+		FROM `tabSales Invoice`
+		WHERE docstatus != 2
+		  AND posting_date BETWEEN %(monday)s AND %(sunday)s
+		GROUP BY posting_date
+		""",
+		{"monday": monday, "sunday": monday + timedelta(days=6)},
+		as_dict=True,
+	)
+
+	# Index results by date string for O(1) lookup
+	by_date = {str(r.posting_date): float(r.daily_total) for r in rows}
+
+	return [
+		{
+			"date":  str(monday + timedelta(days=i)),
+			"total": by_date.get(str(monday + timedelta(days=i)), 0.0),
+		}
+		for i in range(7)
+	]

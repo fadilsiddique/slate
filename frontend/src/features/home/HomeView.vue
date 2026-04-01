@@ -290,6 +290,48 @@
     </div>
 
     <!-- ─────────────────────────────────────────────────────────────────── -->
+    <!-- WEEKLY SALES CHART                                                  -->
+    <!-- ─────────────────────────────────────────────────────────────────── -->
+    <div class="px-4 mt-6">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-[11px] font-extrabold text-gray-800 uppercase tracking-[0.08em]">This Week</h2>
+        <span class="text-[10px] font-medium text-muted/50">Daily Sales</span>
+      </div>
+      <div class="bg-white rounded-2xl border border-muted/15 p-4">
+        <!-- skeleton -->
+        <div v-if="loading && !firstLoaded" class="animate-pulse bg-surface rounded-xl" style="height:120px" />
+        <template v-else>
+          <!-- day labels + bars -->
+          <div class="flex items-end gap-1.5" style="height:120px">
+            <div
+              v-for="day in weeklyData" :key="day.date"
+              class="flex-1 flex flex-col items-center justify-end gap-1"
+              style="height:100%"
+            >
+              <span class="text-[8px] font-semibold text-muted/50 leading-none tabular-nums">
+                {{ day.total > 0 ? compactNum(day.total) : '' }}
+              </span>
+              <div
+                class="w-full rounded-t-lg transition-all duration-500"
+                :class="isToday(day.date) ? 'bg-primary' : 'bg-primary/20'"
+                :style="{ height: weekMaxTotal > 0 ? `${Math.max((day.total / weekMaxTotal) * 88, day.total > 0 ? 4 : 0)}px` : '0px' }"
+              />
+              <span
+                class="text-[9px] font-semibold leading-none"
+                :class="isToday(day.date) ? 'text-primary' : 'text-muted/40'"
+              >{{ dayLabel(day.date) }}</span>
+            </div>
+          </div>
+          <!-- week total -->
+          <div class="mt-3 pt-3 border-t border-muted/10 flex items-center justify-between">
+            <span class="text-[10px] text-muted/50">Week Total</span>
+            <span class="text-[13px] font-bold text-gray-800 tabular-nums">{{ defaultsStore.currency }} {{ compactNum(weekTotal) }}</span>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────────────────────────────────── -->
     <!-- RECENT ACTIVITY — scan-optimised, 64 px rows, customer-first       -->
     <!-- ─────────────────────────────────────────────────────────────────── -->
     <div class="px-4 mt-6 pb-36">
@@ -492,6 +534,20 @@ const stats = reactive({
   overdueValue:        0,
 })
 
+// ── Weekly chart ──────────────────────────────────────────────────────────────
+const weeklyData = ref([])
+
+const weekMaxTotal = computed(() => Math.max(...weeklyData.value.map(d => d.total), 0))
+const weekTotal    = computed(() => weeklyData.value.reduce((s, d) => s + d.total, 0))
+
+function isToday(dateStr) {
+  return dateStr === new Date().toISOString().slice(0, 10)
+}
+
+function dayLabel(dateStr) {
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short' }).slice(0, 2)
+}
+
 // ── Notification badge ────────────────────────────────────────────────────────
 const unreadNotifications = ref(0)
 
@@ -581,7 +637,7 @@ async function loadDashboard(force = false) {
     const today        = now.toISOString().slice(0, 10)
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
 
-    const [siToday, piToday, siMonth, dnPending, actQ, actSO, actDN, actSI, overdueInv, gpToday, gpMonth] =
+    const [siToday, piToday, siMonth, dnPending, actQ, actSO, actDN, actSI, overdueInv, gpToday, gpMonth, weeklySales] =
       await Promise.allSettled([
         // Stat queries
         api.getList('Sales Invoice',    { fields: ['name', 'grand_total'], filters: [['posting_date', '=', today], ['docstatus', '!=', 2]], limit: 500 }),
@@ -598,6 +654,8 @@ async function loadDashboard(force = false) {
         // Gross profit — today and this month
         api.call('slate.api.stats.get_gross_profit', { from_date: today,        to_date: today }),
         api.call('slate.api.stats.get_gross_profit', { from_date: firstOfMonth, to_date: today }),
+        // Weekly sales chart
+        api.call('slate.api.stats.get_weekly_sales', {}),
       ])
 
     // Stats
@@ -606,8 +664,9 @@ async function loadDashboard(force = false) {
     const siM  = unwrap(siMonth)
     const dnP  = unwrap(dnPending)
     const ovr  = unwrap(overdueInv)
-    const gpT  = gpToday.status === 'fulfilled' ? (gpToday.value ?? {}) : {}
-    const gpM  = gpMonth.status === 'fulfilled' ? (gpMonth.value ?? {}) : {}
+    const gpT  = gpToday.status === 'fulfilled'   ? (gpToday.value   ?? {}) : {}
+    const gpM  = gpMonth.status === 'fulfilled'   ? (gpMonth.value   ?? {}) : {}
+    weeklyData.value = weeklySales.status === 'fulfilled' ? (weeklySales.value ?? []) : []
 
     stats.todaySIValue       = siT.reduce((s, r) => s + (r.grand_total || 0), 0)
     stats.todayPurchases     = piT.reduce((s, r) => s + (r.grand_total || 0), 0)
