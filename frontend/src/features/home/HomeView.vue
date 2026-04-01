@@ -78,153 +78,164 @@
     </div>
 
     <!-- ─────────────────────────────────────────────────────────────────── -->
-    <!-- STAT CHIPS — 3-column, equal width, 8 px gap                       -->
+    <!-- STAT CARDS — 2×2 grid                                              -->
     <!-- ─────────────────────────────────────────────────────────────────── -->
-    <div class="grid grid-cols-3 gap-2 px-4 mt-6">
+    <div class="grid grid-cols-2 gap-2 px-4 mt-6">
 
       <!-- Loading skeleton -->
       <template v-if="loading && !firstLoaded">
         <div
-          v-for="n in 3" :key="n"
+          v-for="n in 4" :key="n"
           class="bg-white rounded-2xl border border-muted/15 animate-pulse"
-          style="height: 92px"
+          style="height: 100px"
         />
+        <div class="col-span-2 bg-white rounded-2xl border border-muted/15 animate-pulse" style="height: 100px" />
       </template>
 
       <template v-else>
 
-        <!-- Sales Invoices Today -->
+        <!-- Sales Invoiced Today -->
         <button
-          class="flex flex-col bg-white rounded-2xl border border-muted/15 p-3 text-left min-h-[44px] active:scale-[.97] transition-transform"
+          class="flex flex-col bg-white rounded-2xl border border-muted/15 p-4 text-left active:scale-[.97] transition-transform"
           @click="router.push({ name: 'Invoices' })"
         >
-          <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16l3-2 2 2 2-2 2 2 3-2V4a2 2 0 0 0-2-2z"/><line x1="16" y1="8" x2="8" y2="8"/><line x1="16" y1="12" x2="8" y2="12"/>
-            </svg>
+          <div class="flex items-center justify-between w-full mb-3">
+            <div class="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16l3-2 2 2 2-2 2 2 3-2V4a2 2 0 0 0-2-2z"/><line x1="16" y1="8" x2="8" y2="8"/><line x1="16" y1="12" x2="8" y2="12"/>
+              </svg>
+            </div>
+            <span class="text-[9px] font-semibold text-muted/40 uppercase tracking-wide">Today</span>
           </div>
-          <p class="text-[22px] font-bold text-indigo-600 leading-none tabular-nums">{{ compactNum(stats.todaySIValue) }}</p>
-          <p class="text-[8.5px] font-medium text-muted/55 mt-1.5 leading-tight">Sales Today</p>
+          <p class="text-[24px] font-bold text-indigo-600 leading-none tabular-nums">{{ compactNum(stats.todaySIValue) }}</p>
+          <p class="text-[10px] font-medium text-muted/55 mt-1.5">Sales Invoiced</p>
+        </button>
+
+        <!-- Gross Profit Today -->
+        <button
+          class="flex flex-col bg-white rounded-2xl border border-muted/15 p-4 text-left active:scale-[.97] transition-transform"
+          @click="router.push({ name: 'Invoices' })"
+        >
+          <div class="flex items-center justify-between w-full mb-3">
+            <div class="w-8 h-8 rounded-xl bg-teal-50 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
+            <span class="text-[9px] font-semibold text-muted/40 uppercase tracking-wide">Today</span>
+          </div>
+          <p class="text-[24px] font-bold text-teal-600 leading-none tabular-nums">{{ compactNum(stats.todayGrossProfit) }}</p>
+          <div class="flex items-center justify-between mt-1.5">
+            <p class="text-[10px] font-medium text-muted/55">Gross Profit</p>
+            <span
+              v-if="stats.todayMarginPct > 0"
+              class="text-[9px] font-bold px-1.5 py-[2px] rounded-full"
+              :class="stats.todayMarginPct >= 30 ? 'bg-teal-50 text-teal-700' : stats.todayMarginPct >= 15 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'"
+            >{{ stats.todayMarginPct }}%</span>
+          </div>
         </button>
 
         <!-- Purchases Today -->
         <button
-          class="flex flex-col bg-white rounded-2xl border border-muted/15 p-3 text-left min-h-[44px] active:scale-[.97] transition-transform"
+          class="flex flex-col bg-white rounded-2xl border border-muted/15 p-4 text-left active:scale-[.97] transition-transform"
           @click="router.push({ name: 'PurchaseInvoices' })"
         >
-          <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-            </svg>
+          <div class="flex items-center justify-between w-full mb-3">
+            <div class="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+              </svg>
+            </div>
+            <span class="text-[9px] font-semibold text-muted/40 uppercase tracking-wide">Today</span>
           </div>
-          <p class="text-[22px] font-bold text-amber-600 leading-none tabular-nums">{{ compactNum(stats.todayPurchases) }}</p>
-          <p class="text-[8.5px] font-medium text-muted/55 mt-1.5 leading-tight">Purchases Today</p>
+          <p class="text-[24px] font-bold text-amber-600 leading-none tabular-nums">{{ compactNum(stats.todayPurchases) }}</p>
+          <p class="text-[10px] font-medium text-muted/55 mt-1.5">Purchases</p>
         </button>
 
-        <!-- Sales This Month -->
+        <!-- Monthly Sales -->
         <button
-          class="flex flex-col bg-white rounded-2xl border border-muted/15 p-3 text-left min-h-[44px] active:scale-[.97] transition-transform"
+          class="flex flex-col bg-white rounded-2xl border border-muted/15 p-4 text-left active:scale-[.97] transition-transform"
           @click="router.push({ name: 'Invoices' })"
         >
-          <div class="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
-            </svg>
+          <div class="flex items-center justify-between w-full mb-3">
+            <div class="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+              </svg>
+            </div>
+            <span class="text-[9px] font-semibold text-muted/40 uppercase tracking-wide">{{ monthName }}</span>
           </div>
-          <p class="text-[22px] font-bold text-green-600 leading-none tabular-nums">{{ compactNum(stats.monthlySales) }}</p>
-          <p class="text-[8.5px] font-medium text-muted/55 mt-1.5 leading-tight">Sales / Month</p>
+          <p class="text-[24px] font-bold text-green-600 leading-none tabular-nums">{{ compactNum(stats.monthlySales) }}</p>
+          <p class="text-[10px] font-medium text-muted/55 mt-1.5">Total Sales</p>
+        </button>
+
+        <!-- Gross Profit This Month -->
+        <button
+          class="col-span-2 flex flex-col bg-white rounded-2xl border border-muted/15 p-4 text-left active:scale-[.97] transition-transform"
+          @click="router.push({ name: 'Invoices' })"
+        >
+          <div class="flex items-center justify-between w-full mb-3">
+            <div class="w-8 h-8 rounded-xl bg-teal-50 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
+            <span class="text-[9px] font-semibold text-muted/40 uppercase tracking-wide">{{ monthName }}</span>
+          </div>
+          <div class="flex items-end justify-between gap-4">
+            <div>
+              <p class="text-[24px] font-bold text-teal-600 leading-none tabular-nums">{{ compactNum(stats.monthlyGrossProfit) }}</p>
+              <p class="text-[10px] font-medium text-muted/55 mt-1.5">Gross Profit</p>
+            </div>
+            <span
+              v-if="stats.monthlyMarginPct > 0"
+              class="text-sm font-bold px-3 py-1.5 rounded-xl mb-0.5"
+              :class="stats.monthlyMarginPct >= 30 ? 'bg-teal-50 text-teal-700' : stats.monthlyMarginPct >= 15 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'"
+            >{{ stats.monthlyMarginPct }}% margin</span>
+          </div>
         </button>
 
       </template>
     </div>
 
     <!-- ─────────────────────────────────────────────────────────────────── -->
-    <!-- PRIORITY ACTIONS — modular, role-aware, collapsible-ready          -->
+    <!-- WEEKLY SALES CHART                                                  -->
     <!-- ─────────────────────────────────────────────────────────────────── -->
     <div class="px-4 mt-6">
-
-      <!-- Section header -->
-      <div class="flex items-center gap-2 mb-3">
-        <h2 class="text-[11px] font-extrabold text-gray-800 uppercase tracking-[0.08em]">Priority</h2>
-        <span
-          v-if="hasPriority && firstLoaded"
-          class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-500 text-white text-[8px] font-bold leading-none"
-        >{{ priorityCount }}</span>
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-[11px] font-extrabold text-gray-800 uppercase tracking-[0.08em]">This Week</h2>
+        <span class="text-[10px] font-medium text-muted/50">Daily Sales</span>
       </div>
-
-      <!-- Priority card -->
-      <div class="bg-white rounded-2xl border border-muted/15 overflow-hidden divide-y divide-muted/10">
-
-        <!-- Skeleton -->
-        <template v-if="loading && !firstLoaded">
-          <div class="h-[64px] animate-pulse" />
-          <div class="h-[64px] animate-pulse opacity-60" />
-        </template>
-
+      <div class="bg-white rounded-2xl border border-muted/15 p-4">
+        <!-- skeleton -->
+        <div v-if="loading && !firstLoaded" class="animate-pulse bg-surface rounded-xl" style="height:120px" />
         <template v-else>
-
-          <!-- Overdue invoices -->
-          <button
-            v-if="stats.overdueCount > 0"
-            class="w-full flex items-center gap-3 px-4 min-h-[64px] text-left active:bg-surface/70 transition-colors"
-            @click="router.push({ name: 'Invoices' })"
-          >
-            <div class="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px] text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-            </div>
-            <div class="flex-1 min-w-0 py-4">
-              <p class="text-sm font-semibold text-gray-900 leading-tight">
-                {{ stats.overdueCount }} Overdue Invoice{{ stats.overdueCount !== 1 ? 's' : '' }}
-              </p>
-              <p class="text-xs text-muted mt-0.5">
-                {{ defaultsStore.currency }} {{ compactNum(stats.overdueValue) }} outstanding
-              </p>
-            </div>
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-muted/30 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
-          </button>
-
-          <!-- Delivery notes awaiting invoice -->
-          <button
-            v-if="stats.pendingDNs > 0"
-            class="w-full flex items-center gap-3 px-4 min-h-[64px] text-left active:bg-surface/70 transition-colors"
-            @click="router.push({ name: 'DeliveryNotes' })"
-          >
-            <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px] text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
-              </svg>
-            </div>
-            <div class="flex-1 min-w-0 py-4">
-              <p class="text-sm font-semibold text-gray-900 leading-tight">
-                {{ stats.pendingDNs }} {{ stats.pendingDNs !== 1 ? 'Deliveries' : 'Delivery' }} Awaiting Invoice
-              </p>
-              <p class="text-xs text-muted mt-0.5">Create invoices to complete billing</p>
-            </div>
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-muted/30 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
-          </button>
-
-          <!-- Empty — all caught up -->
-          <div
-            v-if="!hasPriority"
-            class="flex items-center gap-3 px-4 min-h-[64px]"
-          >
-            <div class="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px] text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-            </div>
-            <div>
-              <p class="text-sm font-semibold text-gray-700 leading-tight">All caught up</p>
-              <p class="text-xs text-muted mt-0.5">No items need immediate attention</p>
+          <!-- day labels + bars -->
+          <div class="flex items-end gap-1.5" style="height:120px">
+            <div
+              v-for="day in weeklyData" :key="day.date"
+              class="flex-1 flex flex-col items-center justify-end gap-1"
+              style="height:100%"
+            >
+              <span class="text-[8px] font-semibold text-muted/50 leading-none tabular-nums">
+                {{ day.total > 0 ? compactNum(day.total) : '' }}
+              </span>
+              <div
+                class="w-full rounded-t-lg transition-all duration-500"
+                :class="isToday(day.date) ? 'bg-primary' : 'bg-primary/20'"
+                :style="{ height: weekMaxTotal > 0 ? `${Math.max((day.total / weekMaxTotal) * 88, day.total > 0 ? 4 : 0)}px` : '0px' }"
+              />
+              <span
+                class="text-[9px] font-semibold leading-none"
+                :class="isToday(day.date) ? 'text-primary' : 'text-muted/40'"
+              >{{ dayLabel(day.date) }}</span>
             </div>
           </div>
-
+          <!-- week total -->
+          <div class="mt-3 pt-3 border-t border-muted/10 flex items-center justify-between">
+            <span class="text-[10px] text-muted/50">Week Total</span>
+            <span class="text-[13px] font-bold text-gray-800 tabular-nums">{{ defaultsStore.currency }} {{ compactNum(weekTotal) }}</span>
+          </div>
         </template>
       </div>
     </div>
@@ -290,15 +301,17 @@
               <p class="text-sm font-semibold text-gray-900 leading-tight truncate">
                 {{ item.customer_name || '—' }}
               </p>
-              <!-- Secondary: type dot · doc id · time -->
-              <div class="flex items-center gap-1.5 mt-1">
-                <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="typeDotClass(item._type)" />
-                <span class="text-[10px] font-mono text-muted/70 truncate flex-1 min-w-0">{{ item.name }}</span>
-                <span class="text-[10px] text-muted/50 shrink-0">{{ relativeTime(item.modified) }}</span>
+              <!-- Secondary: doc-type pill · doc id -->
+              <div class="flex items-center gap-1.5 mt-1.5">
+                <span
+                  class="shrink-0 px-1.5 py-[2px] rounded-md text-[9px] font-bold leading-none"
+                  :class="typePillClass(item._type)"
+                >{{ typeShortLabel(item._type) }}</span>
+                <span class="text-[10px] font-mono text-muted/60 truncate min-w-0">{{ item.name }}</span>
               </div>
             </div>
 
-            <!-- Right column: amount + status badge -->
+            <!-- Right column: amount + status badge + time -->
             <div class="shrink-0 flex flex-col items-end gap-1.5 py-3">
               <p class="text-sm font-bold text-gray-800 tabular-nums leading-none">
                 {{ compactNum(item.grand_total) }}
@@ -307,6 +320,7 @@
                 class="px-1.5 py-[2px] rounded-full text-[8.5px] font-semibold leading-none"
                 :class="activityBadge(item)"
               >{{ activityLabel(item) }}</span>
+              <span class="text-[9px] text-muted/45 leading-none">{{ relativeTime(item.modified) }}</span>
             </div>
 
           </button>
@@ -417,13 +431,28 @@ const firstLoaded = ref(false)
 const activity    = ref([])
 
 const stats = reactive({
-  todaySIValue:    0,
-  todayPurchases:  0,
-  monthlySales:    0,
-  pendingDNs:      0,
-  overdueCount:    0,
-  overdueValue:    0,
+  todaySIValue:        0,
+  todayPurchases:      0,
+  todayGrossProfit:    0,
+  todayMarginPct:      0,
+  monthlySales:        0,
+  monthlyGrossProfit:  0,
+  monthlyMarginPct:    0,
 })
+
+// ── Weekly chart ──────────────────────────────────────────────────────────────
+const weeklyData = ref([])
+
+const weekMaxTotal = computed(() => Math.max(...weeklyData.value.map(d => d.total), 0))
+const weekTotal    = computed(() => weeklyData.value.reduce((s, d) => s + d.total, 0))
+
+function isToday(dateStr) {
+  return dateStr === new Date().toISOString().slice(0, 10)
+}
+
+function dayLabel(dateStr) {
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short' }).slice(0, 2)
+}
 
 // ── Notification badge ────────────────────────────────────────────────────────
 const unreadNotifications = ref(0)
@@ -463,6 +492,10 @@ const fabActions = [
 ]
 
 // ── Derived identity ──────────────────────────────────────────────────────────
+const monthName = computed(() =>
+  new Date().toLocaleDateString(undefined, { month: 'short' })
+)
+
 const firstName = computed(() => {
   const name = userInfo.value?.full_name || 'there'
   return name.split(' ')[0]
@@ -478,16 +511,6 @@ const greeting = computed(() => {
   if (h < 12) return 'morning'
   if (h < 17) return 'afternoon'
   return 'evening'
-})
-
-// ── Priority computed ─────────────────────────────────────────────────────────
-const hasPriority = computed(() => stats.overdueCount > 0 || stats.pendingDNs > 0)
-
-const priorityCount = computed(() => {
-  let n = 0
-  if (stats.overdueCount > 0) n++
-  if (stats.pendingDNs > 0)   n++
-  return n
 })
 
 // ── Data fetching ─────────────────────────────────────────────────────────────
@@ -510,35 +533,39 @@ async function loadDashboard(force = false) {
     const today        = now.toISOString().slice(0, 10)
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
 
-    const [siToday, piToday, siMonth, dnPending, actQ, actSO, actDN, actSI, overdueInv] =
+    const [siToday, piToday, siMonth, actQ, actSO, actDN, actSI, gpToday, gpMonth, weeklySales] =
       await Promise.allSettled([
         // Stat queries
         api.getList('Sales Invoice',    { fields: ['name', 'grand_total'], filters: [['posting_date', '=', today], ['docstatus', '!=', 2]], limit: 500 }),
         api.getList('Purchase Invoice', { fields: ['name', 'grand_total'], filters: [['posting_date', '=', today], ['docstatus', '!=', 2]], limit: 500 }),
         api.getList('Sales Invoice',    { fields: ['name', 'grand_total'], filters: [['posting_date', 'between', [firstOfMonth, today]], ['docstatus', '!=', 2]], limit: 500 }),
-        api.getList('Delivery Note',    { fields: ['name'],               filters: [['docstatus', '=', 1], ['status', '=', 'To Bill']], limit: 999 }),
         // Activity queries (4 each, merged + sorted to 10)
         api.getList('Quotation',     { fields: ACT_FIELDS,    limit: 4, orderBy: 'modified desc' }),
         api.getList('Sales Order',   { fields: ACT_FIELDS,    limit: 4, orderBy: 'modified desc' }),
         api.getList('Delivery Note', { fields: ACT_DN_FIELDS, limit: 4, orderBy: 'modified desc' }),
         api.getList('Sales Invoice', { fields: ACT_SI_FIELDS, limit: 4, orderBy: 'modified desc' }),
-        // Priority: overdue invoices
-        api.getList('Sales Invoice', { fields: ['name', 'outstanding_amount'], filters: [['docstatus', '=', 1], ['outstanding_amount', '>', 0], ['due_date', '<', today]], limit: 200 }),
+        // Gross profit — today and this month
+        api.call('slate.api.stats.get_gross_profit', { from_date: today,        to_date: today }),
+        api.call('slate.api.stats.get_gross_profit', { from_date: firstOfMonth, to_date: today }),
+        // Weekly sales chart
+        api.call('slate.api.stats.get_weekly_sales', {}),
       ])
 
     // Stats
     const siT = unwrap(siToday)
     const piT = unwrap(piToday)
     const siM = unwrap(siMonth)
-    const dnP = unwrap(dnPending)
-    const ovr = unwrap(overdueInv)
+    const gpT = gpToday.status === 'fulfilled' ? (gpToday.value ?? {}) : {}
+    const gpM = gpMonth.status === 'fulfilled' ? (gpMonth.value ?? {}) : {}
+    weeklyData.value = weeklySales.status === 'fulfilled' ? (weeklySales.value ?? []) : []
 
-    stats.todaySIValue   = siT.reduce((s, r) => s + (r.grand_total || 0), 0)
-    stats.todayPurchases = piT.reduce((s, r) => s + (r.grand_total || 0), 0)
-    stats.monthlySales   = siM.reduce((s, r) => s + (r.grand_total || 0), 0)
-    stats.pendingDNs     = dnP.length
-    stats.overdueCount   = ovr.length
-    stats.overdueValue   = ovr.reduce((s, r) => s + (r.outstanding_amount || 0), 0)
+    stats.todaySIValue       = siT.reduce((s, r) => s + (r.grand_total || 0), 0)
+    stats.todayPurchases     = piT.reduce((s, r) => s + (r.grand_total || 0), 0)
+    stats.todayGrossProfit   = gpT.gross_profit ?? 0
+    stats.todayMarginPct     = gpT.margin_pct   ?? 0
+    stats.monthlySales       = siM.reduce((s, r) => s + (r.grand_total || 0), 0)
+    stats.monthlyGrossProfit = gpM.gross_profit ?? 0
+    stats.monthlyMarginPct   = gpM.margin_pct   ?? 0
 
     // Activity — merge 4 types, sort by modified, keep top 10
     activity.value = [
@@ -580,13 +607,22 @@ function typeIconBg(type) {
   }[type] ?? 'bg-gray-100 text-gray-500'
 }
 
-function typeDotClass(type) {
+function typePillClass(type) {
   return {
-    Quotation:       'bg-primary',
-    'Sales Order':   'bg-amber-500',
-    'Delivery Note': 'bg-blue-500',
-    'Sales Invoice': 'bg-indigo-500',
-  }[type] ?? 'bg-gray-400'
+    Quotation:       'bg-primary/10 text-primary',
+    'Sales Order':   'bg-amber-50 text-amber-700',
+    'Delivery Note': 'bg-blue-50 text-blue-700',
+    'Sales Invoice': 'bg-indigo-50 text-indigo-700',
+  }[type] ?? 'bg-gray-100 text-gray-500'
+}
+
+function typeShortLabel(type) {
+  return {
+    Quotation:       'Quote',
+    'Sales Order':   'Order',
+    'Delivery Note': 'Delivery',
+    'Sales Invoice': 'Invoice',
+  }[type] ?? type
 }
 
 function activityLabel(item) {
