@@ -78,16 +78,16 @@
     </div>
 
     <!-- ─────────────────────────────────────────────────────────────────── -->
-    <!-- STAT CHIPS — 3-column, equal width, 8 px gap                       -->
+    <!-- STAT CARDS — 2×2 grid                                              -->
     <!-- ─────────────────────────────────────────────────────────────────── -->
-    <div class="grid grid-cols-3 gap-2 px-4 mt-6">
+    <div class="grid grid-cols-2 gap-2 px-4 mt-6">
 
       <!-- Loading skeleton -->
       <template v-if="loading && !firstLoaded">
         <div
-          v-for="n in 3" :key="n"
+          v-for="n in 4" :key="n"
           class="bg-white rounded-2xl border border-muted/15 animate-pulse"
-          style="height: 92px"
+          style="height: 100px"
         />
       </template>
 
@@ -95,44 +95,77 @@
 
         <!-- Sales Invoices Today -->
         <button
-          class="flex flex-col bg-white rounded-2xl border border-muted/15 p-3 text-left min-h-[44px] active:scale-[.97] transition-transform"
+          class="flex flex-col bg-white rounded-2xl border border-muted/15 p-4 text-left active:scale-[.97] transition-transform"
           @click="router.push({ name: 'Invoices' })"
         >
-          <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16l3-2 2 2 2-2 2 2 3-2V4a2 2 0 0 0-2-2z"/><line x1="16" y1="8" x2="8" y2="8"/><line x1="16" y1="12" x2="8" y2="12"/>
-            </svg>
+          <div class="flex items-center justify-between w-full mb-3">
+            <div class="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16l3-2 2 2 2-2 2 2 3-2V4a2 2 0 0 0-2-2z"/><line x1="16" y1="8" x2="8" y2="8"/><line x1="16" y1="12" x2="8" y2="12"/>
+              </svg>
+            </div>
+            <span class="text-[9px] font-semibold text-muted/40 uppercase tracking-wide">Today</span>
           </div>
-          <p class="text-[22px] font-bold text-indigo-600 leading-none tabular-nums">{{ compactNum(stats.todaySIValue) }}</p>
-          <p class="text-[8.5px] font-medium text-muted/55 mt-1.5 leading-tight">Sales Today</p>
+          <p class="text-[24px] font-bold text-indigo-600 leading-none tabular-nums">{{ compactNum(stats.todaySIValue) }}</p>
+          <p class="text-[10px] font-medium text-muted/55 mt-1.5">Sales Invoiced</p>
         </button>
 
         <!-- Purchases Today -->
         <button
-          class="flex flex-col bg-white rounded-2xl border border-muted/15 p-3 text-left min-h-[44px] active:scale-[.97] transition-transform"
+          class="flex flex-col bg-white rounded-2xl border border-muted/15 p-4 text-left active:scale-[.97] transition-transform"
           @click="router.push({ name: 'PurchaseInvoices' })"
         >
-          <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-            </svg>
+          <div class="flex items-center justify-between w-full mb-3">
+            <div class="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+              </svg>
+            </div>
+            <span class="text-[9px] font-semibold text-muted/40 uppercase tracking-wide">Today</span>
           </div>
-          <p class="text-[22px] font-bold text-amber-600 leading-none tabular-nums">{{ compactNum(stats.todayPurchases) }}</p>
-          <p class="text-[8.5px] font-medium text-muted/55 mt-1.5 leading-tight">Purchases Today</p>
+          <p class="text-[24px] font-bold text-amber-600 leading-none tabular-nums">{{ compactNum(stats.todayPurchases) }}</p>
+          <p class="text-[10px] font-medium text-muted/55 mt-1.5">Purchases</p>
         </button>
 
         <!-- Sales This Month -->
         <button
-          class="flex flex-col bg-white rounded-2xl border border-muted/15 p-3 text-left min-h-[44px] active:scale-[.97] transition-transform"
+          class="flex flex-col bg-white rounded-2xl border border-muted/15 p-4 text-left active:scale-[.97] transition-transform"
           @click="router.push({ name: 'Invoices' })"
         >
-          <div class="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
-            </svg>
+          <div class="flex items-center justify-between w-full mb-3">
+            <div class="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+              </svg>
+            </div>
+            <span class="text-[9px] font-semibold text-muted/40 uppercase tracking-wide">{{ monthName }}</span>
           </div>
-          <p class="text-[22px] font-bold text-green-600 leading-none tabular-nums">{{ compactNum(stats.monthlySales) }}</p>
-          <p class="text-[8.5px] font-medium text-muted/55 mt-1.5 leading-tight">Sales / Month</p>
+          <p class="text-[24px] font-bold text-green-600 leading-none tabular-nums">{{ compactNum(stats.monthlySales) }}</p>
+          <p class="text-[10px] font-medium text-muted/55 mt-1.5">Total Sales</p>
+        </button>
+
+        <!-- Gross Profit This Month -->
+        <button
+          class="flex flex-col bg-white rounded-2xl border border-muted/15 p-4 text-left active:scale-[.97] transition-transform"
+          @click="router.push({ name: 'Invoices' })"
+        >
+          <div class="flex items-center justify-between w-full mb-3">
+            <div class="w-8 h-8 rounded-xl bg-teal-50 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
+            <span class="text-[9px] font-semibold text-muted/40 uppercase tracking-wide">{{ monthName }}</span>
+          </div>
+          <p class="text-[24px] font-bold text-teal-600 leading-none tabular-nums">{{ compactNum(stats.grossProfit) }}</p>
+          <div class="flex items-center justify-between mt-1.5">
+            <p class="text-[10px] font-medium text-muted/55">Gross Profit</p>
+            <span
+              v-if="stats.grossMarginPct > 0"
+              class="text-[9px] font-bold px-1.5 py-[2px] rounded-full"
+              :class="stats.grossMarginPct >= 30 ? 'bg-teal-50 text-teal-700' : stats.grossMarginPct >= 15 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'"
+            >{{ stats.grossMarginPct }}%</span>
+          </div>
         </button>
 
       </template>
@@ -423,6 +456,8 @@ const stats = reactive({
   todaySIValue:    0,
   todayPurchases:  0,
   monthlySales:    0,
+  grossProfit:     0,
+  grossMarginPct:  0,
   pendingDNs:      0,
   overdueCount:    0,
   overdueValue:    0,
@@ -466,6 +501,10 @@ const fabActions = [
 ]
 
 // ── Derived identity ──────────────────────────────────────────────────────────
+const monthName = computed(() =>
+  new Date().toLocaleDateString(undefined, { month: 'short' })
+)
+
 const firstName = computed(() => {
   const name = userInfo.value?.full_name || 'there'
   return name.split(' ')[0]
@@ -513,7 +552,7 @@ async function loadDashboard(force = false) {
     const today        = now.toISOString().slice(0, 10)
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
 
-    const [siToday, piToday, siMonth, dnPending, actQ, actSO, actDN, actSI, overdueInv] =
+    const [siToday, piToday, siMonth, dnPending, actQ, actSO, actDN, actSI, overdueInv, gpMonth] =
       await Promise.allSettled([
         // Stat queries
         api.getList('Sales Invoice',    { fields: ['name', 'grand_total'], filters: [['posting_date', '=', today], ['docstatus', '!=', 2]], limit: 500 }),
@@ -527,6 +566,8 @@ async function loadDashboard(force = false) {
         api.getList('Sales Invoice', { fields: ACT_SI_FIELDS, limit: 4, orderBy: 'modified desc' }),
         // Priority: overdue invoices
         api.getList('Sales Invoice', { fields: ['name', 'outstanding_amount'], filters: [['docstatus', '=', 1], ['outstanding_amount', '>', 0], ['due_date', '<', today]], limit: 200 }),
+        // Gross profit this month (submitted invoices only)
+        api.call('slate.api.stats.get_gross_profit', { from_date: firstOfMonth, to_date: today }),
       ])
 
     // Stats
@@ -535,10 +576,13 @@ async function loadDashboard(force = false) {
     const siM = unwrap(siMonth)
     const dnP = unwrap(dnPending)
     const ovr = unwrap(overdueInv)
+    const gp  = gpMonth.status === 'fulfilled' ? (gpMonth.value ?? {}) : {}
 
     stats.todaySIValue   = siT.reduce((s, r) => s + (r.grand_total || 0), 0)
     stats.todayPurchases = piT.reduce((s, r) => s + (r.grand_total || 0), 0)
     stats.monthlySales   = siM.reduce((s, r) => s + (r.grand_total || 0), 0)
+    stats.grossProfit    = gp.gross_profit  ?? 0
+    stats.grossMarginPct = gp.margin_pct    ?? 0
     stats.pendingDNs     = dnP.length
     stats.overdueCount   = ovr.length
     stats.overdueValue   = ovr.reduce((s, r) => s + (r.outstanding_amount || 0), 0)
