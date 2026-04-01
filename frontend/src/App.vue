@@ -14,7 +14,7 @@
       >
         <div class="flex items-center gap-3 px-4 py-3">
           <!-- App icon -->
-          <img src="/assets/slate/frontend/icons/icon-192.png" class="w-11 h-11 rounded-2xl shrink-0" alt="" />
+          <img :src="iconUrl" class="w-11 h-11 rounded-2xl shrink-0" alt="" />
 
           <!-- Text -->
           <div class="flex-1 min-w-0">
@@ -51,6 +51,9 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
 const DISMISSED_KEY = 'slate:install-prompt-dismissed'
+const iconUrl = import.meta.env.PROD
+  ? '/assets/slate/frontend/icons/icon-192.png'
+  : '/icons/icon-192.png'
 
 const showInstallPrompt = ref(false)
 let deferredPrompt = null
